@@ -1,0 +1,7 @@
+- light on ram and system editor
+- can create and save a code file (close to pastebin) but good editor 
+- can create diagram like excalidraw 
+- saved item in a folder on server and synced with git (oauth login  or git key to sync to git  )
+- can share link view only links to users by default valid for 1 day , max for 30 days
+- it should look gorgeous , modern, something like apple has made the ui.
+- only i can use it so ignore complexity like auth etc

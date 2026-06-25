@@ -1,0 +1,25 @@
+# secrets & local config — never commit
+.env
+what_i_need
+
+# rebuildable SQLite index
+scratchpad.db
+scratchpad.db-*
+app.db
+app.db-*
+
+# the git-synced content lives in its OWN repo, not this source repo
+/data/
+
+# build artifacts
+/scratchpad
+/scratchpad-linux-arm64
+/slate
+/slate-linux-arm64
+/web/dist/
+/web/node_modules/
+/web/*.tsbuildinfo
+
+# misc
+.DS_Store
+*.log
