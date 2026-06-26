@@ -30,6 +30,7 @@ export const FILE_TYPES: Record<string, FileType> = {
 };
 
 export const DRAW_TYPE: FileType = { ext: "ed", color: "#9b6dd6", label: "Drawing" };
+export const MIND_TYPE: FileType = { ext: "mm", color: "#0ca678", label: "Mindmap" };
 
 // Languages offered in the dropdown, in display order.
 export const LANGUAGES = [
@@ -52,7 +53,8 @@ export const LANGUAGES = [
   "shell",
 ] as const;
 
-export function fileTypeFor(itemType: "code" | "draw", language: string): FileType {
+export function fileTypeFor(itemType: "code" | "draw" | "mind", language: string): FileType {
   if (itemType === "draw") return DRAW_TYPE;
+  if (itemType === "mind") return MIND_TYPE;
   return FILE_TYPES[language] ?? { ext: language || "txt", color: "#8a8f98", label: language || "Text" };
 }

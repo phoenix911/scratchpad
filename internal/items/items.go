@@ -17,8 +17,10 @@ import (
 const (
 	TypeCode = "code"
 	TypeDraw = "draw"
+	TypeMind = "mind"
 
 	drawExt   = "excalidraw"
+	mindExt   = "mind"
 	itemsRoot = "items"
 )
 
@@ -57,7 +59,7 @@ type CreateInput struct {
 
 // Create writes the file and indexes it.
 func (s *Service) Create(in CreateInput) (FullItem, error) {
-	if in.Type != TypeCode && in.Type != TypeDraw {
+	if in.Type != TypeCode && in.Type != TypeDraw && in.Type != TypeMind {
 		return FullItem{}, fmt.Errorf("invalid type %q", in.Type)
 	}
 	title := strings.TrimSpace(in.Title)
@@ -187,8 +189,11 @@ func (s *Service) abs(rel string) string { return filepath.Join(s.dataDir, rel) 
 
 func (s *Service) relPath(it store.Item) string {
 	ext := drawExt
-	if it.Type == TypeCode {
+	switch it.Type {
+	case TypeCode:
 		ext = extForLanguage(it.Language)
+	case TypeMind:
+		ext = mindExt
 	}
 	name := fmt.Sprintf("%s-%s.%s", slug(it.Title), it.ID, ext)
 	if it.Folder == "" {

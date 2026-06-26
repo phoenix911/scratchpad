@@ -1,7 +1,7 @@
 // Thin typed wrapper over the JSON API. Cookies carry the session, so every
 // request is credentialed.
 
-export type ItemType = "code" | "draw";
+export type ItemType = "code" | "draw" | "mind";
 
 export interface Item {
   id: string;

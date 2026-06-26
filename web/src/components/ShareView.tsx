@@ -4,6 +4,7 @@ import { ApiError } from "../lib/api";
 import { CodeEditor } from "./CodeEditor";
 
 const DrawCanvas = lazy(() => import("./DrawCanvas").then((m) => ({ default: m.DrawCanvas })));
+const MindCanvas = lazy(() => import("./MindCanvas").then((m) => ({ default: m.MindCanvas })));
 
 type State = { kind: "loading" } | { kind: "ok"; view: SharedView } | { kind: "error"; message: string };
 
@@ -50,11 +51,17 @@ export function ShareView({ token }: { token: string }) {
         </span>
       </header>
       <div className="min-h-0 flex-1">
-        {view.type === "code" ? (
+        {view.type === "code" && (
           <CodeEditor docId={token} initialContent={view.content} language={view.language} onChange={() => {}} readOnly />
-        ) : (
+        )}
+        {view.type === "draw" && (
           <Suspense fallback={<Centered>loading canvas…</Centered>}>
             <DrawCanvas docId={token} initialContent={view.content} viewMode />
+          </Suspense>
+        )}
+        {view.type === "mind" && (
+          <Suspense fallback={<Centered>loading mindmap…</Centered>}>
+            <MindCanvas docId={token} initialContent={view.content} viewMode />
           </Suspense>
         )}
       </div>

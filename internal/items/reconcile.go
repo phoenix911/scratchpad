@@ -48,9 +48,12 @@ func (s *Service) Reconcile() error {
 			Path:   rel,
 			Folder: folder,
 		}
-		if ext == drawExt {
+		switch ext {
+		case drawExt:
 			it.Type = TypeDraw
-		} else {
+		case mindExt:
+			it.Type = TypeMind
+		default:
 			it.Type = TypeCode
 			it.Language = languageForExt(ext)
 		}

@@ -4,8 +4,9 @@ import { api, type FullItem } from "../lib/api";
 import { useDebouncedSave, type SaveState } from "../lib/useDebouncedSave";
 import { CodeEditor } from "./CodeEditor";
 
-// Excalidraw is heavy — code-split so code-only sessions never download it.
+// Excalidraw + Mind Elixir are heavy — code-split so they load only when opened.
 const DrawCanvas = lazy(() => import("./DrawCanvas").then((m) => ({ default: m.DrawCanvas })));
+const MindCanvas = lazy(() => import("./MindCanvas").then((m) => ({ default: m.MindCanvas })));
 
 // The main pane is just the editor/canvas, full-bleed — all controls live in the
 // sidebar. A tiny unobtrusive save indicator floats in the corner.
@@ -51,6 +52,11 @@ export function Workspace() {
       {item && !loading && item.type === "draw" && (
         <Suspense fallback={<Centered>loading canvas…</Centered>}>
           <DrawCanvas docId={item.id} initialContent={item.content} onChange={schedule} />
+        </Suspense>
+      )}
+      {item && !loading && item.type === "mind" && (
+        <Suspense fallback={<Centered>loading mindmap…</Centered>}>
+          <MindCanvas docId={item.id} initialContent={item.content} onChange={schedule} />
         </Suspense>
       )}
       <SaveBadge status={status} />

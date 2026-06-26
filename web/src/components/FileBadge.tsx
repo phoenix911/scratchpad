@@ -7,7 +7,7 @@ export function FileBadge({
   language,
   size = "sm",
 }: {
-  itemType: "code" | "draw";
+  itemType: "code" | "draw" | "mind";
   language: string;
   size?: "sm" | "md";
 }) {

@@ -17,6 +17,14 @@ export const DrawIcon = ({ size = 16, className }: P) => (
     <path d="M12.5 7.5 16 11" />
   </svg>
 );
+export const MindIcon = ({ size = 16, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <rect x="9" y="3" width="6" height="4" rx="1.2" />
+    <rect x="3" y="17" width="6" height="4" rx="1.2" />
+    <rect x="15" y="17" width="6" height="4" rx="1.2" />
+    <path d="M12 7v4M12 11c0 2-3 2-6 2.5M12 11c0 2 3 2 6 2.5M6 13.5V17M18 13.5V17" />
+  </svg>
+);
 export const PlusIcon = ({ size = 16, className }: P) => (
   <svg {...base(size)} className={className}>
     <path d="M12 5v14M5 12h14" />
