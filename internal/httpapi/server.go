@@ -51,6 +51,8 @@ func (s *Server) Router() http.Handler {
 	// Public share page (SPA HTML with injected OG tags) + the OG preview image.
 	r.Get("/s/{token}", s.handleSharePage)
 	r.Get("/og/{token}.png", s.handleOGImage)
+	// Public uploaded images (embedded in docs / shared pages).
+	r.Get("/assets/{name}", s.handleAsset)
 
 	// --- authed API ---
 	r.Group(func(r chi.Router) {
@@ -75,6 +77,7 @@ func (s *Server) Router() http.Handler {
 		})
 		r.Post("/api/sync", s.handleSync)
 		r.Get("/api/sync/status", s.handleSyncStatus)
+		r.Post("/api/upload", s.handleUpload)
 	})
 
 	// --- SPA fallback (also serves login screen) ---

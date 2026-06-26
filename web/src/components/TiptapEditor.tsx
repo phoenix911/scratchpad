@@ -1,5 +1,8 @@
+import { useRef } from "react";
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import Image from "@tiptap/extension-image";
+import { api } from "../lib/api";
 
 interface Props {
   docId: string;
@@ -8,20 +11,60 @@ interface Props {
   readOnly?: boolean;
 }
 
+// Upload an image file and insert it at the cursor.
+async function insertImage(editor: Editor, file: File) {
+  try {
+    const url = await api.uploadImage(file);
+    editor.chain().focus().setImage({ src: url }).run();
+  } catch {
+    /* ignore failed upload */
+  }
+}
+
+function imageFiles(list: FileList | DataTransferItemList | null): File[] {
+  if (!list) return [];
+  const out: File[] = [];
+  for (let i = 0; i < list.length; i++) {
+    const item = list[i] as File | DataTransferItem;
+    const file = "getAsFile" in item ? item.getAsFile() : item;
+    if (file && file.type.startsWith("image/")) out.push(file);
+  }
+  return out;
+}
+
 // Rich-text document (Tiptap / ProseMirror). Stored as HTML (git-diffable,
 // rendered directly in the share view). Markdown-style input rules from
 // StarterKit make it feel native ("# " → heading, "- " → list, etc.).
 export function TiptapEditor({ docId, initialContent, onChange, readOnly }: Props) {
   const editor = useEditor(
     {
-      extensions: [StarterKit],
+      extensions: [StarterKit, Image.configure({ inline: false })],
       content: initialContent || "<p></p>",
       editable: !readOnly,
       onUpdate: ({ editor }) => onChange?.(editor.getHTML()),
-      editorProps: { attributes: { class: "tiptap-content" } },
+      editorProps: {
+        attributes: { class: "tiptap-content" },
+        handlePaste: (_view, event) => {
+          const files = imageFiles(event.clipboardData?.items ?? null);
+          if (files.length === 0) return false;
+          event.preventDefault();
+          files.forEach((f) => insertImage(editorRef.current!, f));
+          return true;
+        },
+        handleDrop: (_view, event) => {
+          const files = imageFiles((event as DragEvent).dataTransfer?.files ?? null);
+          if (files.length === 0) return false;
+          event.preventDefault();
+          files.forEach((f) => insertImage(editorRef.current!, f));
+          return true;
+        },
+      },
     },
     [docId],
   );
+  // Keep a stable ref so the paste/drop handlers (captured at init) reach the editor.
+  const editorRef = useRef<Editor | null>(null);
+  editorRef.current = editor;
 
   return (
     <div className="flex h-full flex-col">

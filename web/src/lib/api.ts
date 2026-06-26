@@ -113,6 +113,17 @@ export const api = {
   // backlinks
   backlinks: (id: string) => req<Backlinks>("GET", `/api/items/${id}/backlinks`),
 
+  // upload a pasted/dropped image → returns its public URL
+  uploadImage: async (file: Blob): Promise<string> => {
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      headers: { "Content-Type": file.type },
+      body: file,
+    });
+    if (!res.ok) throw new ApiError(res.status, "upload failed");
+    return (await res.json()).url as string;
+  },
+
   // sync
   syncStatus: () => req<SyncStatus>("GET", "/api/sync/status"),
   sync: () => req<SyncStatus>("POST", "/api/sync"),
