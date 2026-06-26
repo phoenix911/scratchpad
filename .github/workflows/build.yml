@@ -1,0 +1,35 @@
+name: build
+
+# Validates that the SPA + Go binary compile — runs on every PR (including
+# Dependabot's Excalidraw bumps) and on pushes to main. A failing build here is
+# the signal that an upgrade broke something (e.g. an Excalidraw API change).
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Build SPA
+        run: |
+          cd web
+          npm ci
+          npm run build
+
+      - name: Build binary (verifies the embed)
+        run: go build ./...

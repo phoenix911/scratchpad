@@ -15,6 +15,22 @@ updates:
         patterns:
           - "@codemirror/*"
           - "codemirror"
+          - "@lezer/*"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "react-router-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      build-tooling:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+          - "tailwindcss"
+          - "@tailwindcss/*"
+          - "typescript"
+          - "zustand"
     commit-message:
       prefix: "deps"
 
