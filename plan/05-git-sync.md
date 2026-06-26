@@ -1,8 +1,10 @@
 # Scratchpad — Git Sync
 
 The `data/` directory is a git working tree whose remote is a private GitHub
-repo (`scratchpad-data.git`). Sync is handled in-process by **go-git** (pure Go)
-— no system `git` binary required, which keeps the NAS deploy a single static file.
+repo (`scratchpad-data.git`). Sync shells out to the **system `git` binary**
+(`os/exec`), so it reuses the machine's existing git/SSH config — agent, keys,
+`known_hosts`, `~/.gitconfig` — and behaves exactly like git on the command line.
+Requires `git` installed on the deploy box (accepted). No go-git dependency.
 
 ## Auth: SSH (decided)
 The deploy machine (NAS) has an SSH key with access to the private data repo, so
@@ -26,12 +28,17 @@ on first use (documented in README) or ship a pinned `known_hosts`.
 - **Commit messages:** auto, e.g. `update <title>`, `add <title>`,
   `delete <title>`.
 
-## go-git operations
+## Syncer operations (`internal/git`, system git)
 | Func | Does |
 |---|---|
-| `EnsureRepo()` | clone or init+remote; ensure `.gitignore` excludes `app.db`/`config.json` |
-| `Pull()` | fetch + fast-forward merge; report if non-FF (conflict) |
-| `CommitAndPush(msg)` | `worktree.Add(.)`, commit (author = "Slate"), push with PAT auth |
+| `EnsureRepo()` | clone into an empty data dir (also handles an empty remote), else `git init -b main` + `git remote add origin`; sets a local commit identity |
+| `Pull()` | `git fetch` + `git merge --ff-only origin/<branch>`; missing/empty upstream ignored; divergence → `conflict` state |
+| `Schedule()` | debounced (5s, coalesced) commit+push after edits |
+| `SyncNow()` | immediate pull + commit + push (the "Sync now" button) |
+| `commitAndPush()` | `git add -A`; commit only if dirty; `git push -u origin HEAD` |
+
+Each `git` call runs with `GIT_TERMINAL_PROMPT=0` and a 60s timeout so a hung
+network op can't block or hang on a credential prompt.
 
 ## Conflict handling
 Single user, so conflicts are rare (e.g. edited on two machines before syncing).

@@ -25,6 +25,13 @@ export interface ShareLink {
   createdAt?: number;
 }
 
+export interface SyncStatus {
+  enabled: boolean;
+  state: "off" | "idle" | "syncing" | "conflict" | "error";
+  lastSync: number;
+  message: string;
+}
+
 export interface SharedView {
   type: ItemType;
   title: string;
@@ -83,6 +90,10 @@ export const api = {
     req<{ shares: ShareLink[] }>("GET", `/api/items/${id}/shares`).then((r) => r.shares ?? []),
   revokeShare: (token: string) => req<void>("DELETE", `/api/shares/${token}`),
   getShared: (token: string) => req<SharedView>("GET", `/api/share/${token}`),
+
+  // sync
+  syncStatus: () => req<SyncStatus>("GET", "/api/sync/status"),
+  sync: () => req<SyncStatus>("POST", "/api/sync"),
 
   // folders
   listFolders: () => req<{ folders: string[] }>("GET", "/api/folders").then((r) => r.folders ?? []),

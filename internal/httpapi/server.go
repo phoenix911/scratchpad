@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 
 	"scratchpad/internal/config"
+	"scratchpad/internal/git"
 	"scratchpad/internal/items"
 	"scratchpad/internal/store"
 )
@@ -19,18 +20,19 @@ type Server struct {
 	cfg   config.Config
 	st    *store.Store
 	items *items.Service
+	sync  *git.Syncer
 	auth  *authenticator
 	dist  fs.FS
 	spa   http.Handler
 }
 
 // NewServer wires the API. dist is the embedded SPA filesystem.
-func NewServer(cfg config.Config, st *store.Store, svc *items.Service, dist fs.FS) (*Server, error) {
+func NewServer(cfg config.Config, st *store.Store, svc *items.Service, syncer *git.Syncer, dist fs.FS) (*Server, error) {
 	auth, err := newAuthenticator(cfg, st)
 	if err != nil {
 		return nil, err
 	}
-	return &Server{cfg: cfg, st: st, items: svc, auth: auth, dist: dist, spa: SPAHandler(dist)}, nil
+	return &Server{cfg: cfg, st: st, items: svc, sync: syncer, auth: auth, dist: dist, spa: SPAHandler(dist)}, nil
 }
 
 // Router builds the chi router with public + authed route groups.
@@ -67,6 +69,8 @@ func (s *Server) Router() http.Handler {
 			r.Get("/", s.handleListFolders)
 			r.Post("/", s.handleFolderAction)
 		})
+		r.Post("/api/sync", s.handleSync)
+		r.Get("/api/sync/status", s.handleSyncStatus)
 	})
 
 	// --- SPA fallback (also serves login screen) ---

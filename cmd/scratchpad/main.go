@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"scratchpad/internal/config"
+	"scratchpad/internal/git"
 	"scratchpad/internal/httpapi"
 	"scratchpad/internal/items"
 	"scratchpad/internal/store"
@@ -29,12 +30,25 @@ func main() {
 	}
 	defer st.Close()
 
-	svc := items.New(st, cfg.DataDir, nil) // git onChange hook wired in M6
+	// Git sync (best-effort). EnsureRepo + Pull bring in any remote changes
+	// before we reconcile the index against the data dir.
+	syncer, err := git.New(cfg)
+	if err != nil {
+		log.Fatalf("init git: %v", err)
+	}
+	if err := syncer.EnsureRepo(); err != nil {
+		log.Printf("git: ensure repo failed (continuing local-only): %v", err)
+	} else if err := syncer.Pull(); err != nil {
+		log.Printf("git: pull failed (continuing): %v", err)
+	}
+
+	// Every item/folder mutation schedules a debounced commit+push.
+	svc := items.New(st, cfg.DataDir, syncer.Schedule)
 	if err := svc.Reconcile(); err != nil {
 		log.Fatalf("reconcile data dir: %v", err)
 	}
 
-	srvAPI, err := httpapi.NewServer(cfg, st, svc, web.Dist())
+	srvAPI, err := httpapi.NewServer(cfg, st, svc, syncer, web.Dist())
 	if err != nil {
 		log.Fatalf("init server: %v", err)
 	}

@@ -4,6 +4,7 @@ import { api, type FullItem } from "../lib/api";
 import { useDebouncedSave, type SaveState } from "../lib/useDebouncedSave";
 import { CodeEditor } from "./CodeEditor";
 import { ShareDialog } from "./ShareDialog";
+import { SyncPill } from "./SyncPill";
 import { LANGS } from "../lib/langs";
 import { SunIcon, MoonIcon, TrashIcon, ShareIcon } from "./icons";
 
@@ -104,6 +105,7 @@ export function Workspace() {
         )}
 
         <div className="ml-auto" />
+        <SyncPill />
         <button
           onClick={toggleTheme}
           title="Toggle theme"
