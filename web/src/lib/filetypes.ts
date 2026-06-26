@@ -33,6 +33,7 @@ export const DRAW_TYPE: FileType = { ext: "ed", color: "#9b6dd6", label: "Drawin
 export const MIND_TYPE: FileType = { ext: "mm", color: "#0ca678", label: "Mindmap" };
 export const DOC_TYPE: FileType = { ext: "doc", color: "#5c7cfa", label: "Doc" };
 export const KANBAN_TYPE: FileType = { ext: "kb", color: "#e64980", label: "Board" };
+export const CORNELL_TYPE: FileType = { ext: "cn", color: "#f08c00", label: "Cornell note" };
 
 // Languages offered in the dropdown, in display order.
 export const LANGUAGES = [
@@ -55,7 +56,7 @@ export const LANGUAGES = [
   "shell",
 ] as const;
 
-export type ItemKind = "code" | "draw" | "mind" | "doc" | "kanban";
+export type ItemKind = "code" | "draw" | "mind" | "doc" | "kanban" | "cornell";
 
 export function fileTypeFor(itemType: ItemKind, language: string): FileType {
   switch (itemType) {
@@ -67,6 +68,8 @@ export function fileTypeFor(itemType: ItemKind, language: string): FileType {
       return DOC_TYPE;
     case "kanban":
       return KANBAN_TYPE;
+    case "cornell":
+      return CORNELL_TYPE;
     default:
       return FILE_TYPES[language] ?? { ext: language || "txt", color: "#8a8f98", label: language || "Text" };
   }

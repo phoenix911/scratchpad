@@ -38,22 +38,24 @@ func extractLinks(content string) []string {
 }
 
 const (
-	TypeCode   = "code"
-	TypeDraw   = "draw"
-	TypeMind   = "mind"
-	TypeDoc    = "doc"
-	TypeKanban = "kanban"
+	TypeCode    = "code"
+	TypeDraw    = "draw"
+	TypeMind    = "mind"
+	TypeDoc     = "doc"
+	TypeKanban  = "kanban"
+	TypeCornell = "cornell"
 
-	drawExt   = "excalidraw"
-	mindExt   = "mind"
-	docExt    = "doc"
-	kanbanExt = "kanban"
-	itemsRoot = "items"
+	drawExt    = "excalidraw"
+	mindExt    = "mind"
+	docExt     = "doc"
+	kanbanExt  = "kanban"
+	cornellExt = "cornell"
+	itemsRoot  = "items"
 )
 
 func validType(t string) bool {
 	switch t {
-	case TypeCode, TypeDraw, TypeMind, TypeDoc, TypeKanban:
+	case TypeCode, TypeDraw, TypeMind, TypeDoc, TypeKanban, TypeCornell:
 		return true
 	}
 	return false
@@ -235,6 +237,8 @@ func (s *Service) relPath(it store.Item) string {
 		ext = docExt
 	case TypeKanban:
 		ext = kanbanExt
+	case TypeCornell:
+		ext = cornellExt
 	}
 	name := fmt.Sprintf("%s-%s.%s", slug(it.Title), it.ID, ext)
 	if it.Folder == "" {

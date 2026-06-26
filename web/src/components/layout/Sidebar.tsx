@@ -165,11 +165,17 @@ function Row({
 
 // The active file's controls — replaces the old top bar.
 function Inspector() {
-  const { items, activeId, updateMeta, deleteItem } = useStore();
+  const { items, folders, activeId, updateMeta, deleteItem } = useStore();
   const item = items.find((i) => i.id === activeId);
   const [shareOpen, setShareOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const allFolders = useMemo(() => {
+    const set = new Set<string>(folders);
+    items.forEach((i) => i.folder && set.add(i.folder));
+    return [...set].sort();
+  }, [folders, items]);
 
   if (!item) return null;
 
@@ -190,6 +196,26 @@ function Inspector() {
       {item.type === "code" && (
         <LanguageDropdown value={item.language} onChange={(lang) => updateMeta(item.id, { language: lang })} />
       )}
+
+      <div className="mt-1.5">
+        <input
+          list="folder-options"
+          key={item.id + "|" + item.folder}
+          defaultValue={item.folder}
+          onBlur={(e) => {
+            const f = e.target.value.trim();
+            if (f !== item.folder) updateMeta(item.id, { folder: f });
+          }}
+          onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+          placeholder="Move to folder…"
+          className="w-full rounded-[var(--radius)] border border-[var(--line)] bg-transparent px-2 py-1 text-[12px] text-[var(--ink-soft)] outline-none transition focus:border-[var(--accent)] focus:text-[var(--ink)]"
+        />
+        <datalist id="folder-options">
+          {allFolders.map((f) => (
+            <option key={f} value={f} />
+          ))}
+        </datalist>
+      </div>
 
       <div className="mt-2">
         <LinksPanel itemId={item.id} updatedAt={item.updatedAt} />

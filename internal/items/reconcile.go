@@ -57,6 +57,8 @@ func (s *Service) Reconcile() error {
 			it.Type = TypeDoc
 		case kanbanExt:
 			it.Type = TypeKanban
+		case cornellExt:
+			it.Type = TypeCornell
 		default:
 			it.Type = TypeCode
 			it.Language = languageForExt(ext)

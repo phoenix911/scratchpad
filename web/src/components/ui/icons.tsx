@@ -38,6 +38,12 @@ export const KanbanIcon = ({ size = 16, className }: P) => (
     <rect x="17" y="4" width="4" height="13" rx="1.2" />
   </svg>
 );
+export const CornellIcon = ({ size = 16, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <rect x="3" y="4" width="18" height="16" rx="2" />
+    <path d="M9 4v11M3 15h18" />
+  </svg>
+);
 export const PlusIcon = ({ size = 16, className }: P) => (
   <svg {...base(size)} className={className}>
     <path d="M12 5v14M5 12h14" />

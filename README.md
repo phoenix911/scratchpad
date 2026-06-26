@@ -20,8 +20,11 @@ private git repository you control, and shareable via expiring view-only links.
 
 ## Features
 
-- **Five editors, one app** — code snippets (CodeMirror), drawings (Excalidraw),
-  mindmaps (Mind Elixir), rich-text docs (Tiptap) and kanban boards.
+- **Six editors, one app** — code snippets (CodeMirror), drawings (Excalidraw),
+  mindmaps (Mind Elixir), rich-text docs (Tiptap), kanban boards and Cornell
+  notes.
+- **Folders** — organize items into folders (mirrored as subdirectories in your
+  data repo).
 - **Files on disk, synced to git** — your data is a folder of real files pushed
   to your own private repo over SSH or HTTPS. Easy backup, easy recovery.
 - **View-only share links** — share any item read-only, with optional expiry

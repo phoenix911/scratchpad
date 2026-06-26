@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useStore } from "@/store";
 import { FileBadge } from "@/components/ui/FileBadge";
-import { PlusIcon, DrawIcon, MindIcon, DocIcon, KanbanIcon, SunIcon, MoonIcon } from "@/components/ui/icons";
+import { PlusIcon, DrawIcon, MindIcon, DocIcon, KanbanIcon, CornellIcon, SunIcon, MoonIcon } from "@/components/ui/icons";
 
 interface Cmd {
   id: string;
@@ -65,6 +65,13 @@ export function CommandPalette() {
         hint: "kanban",
         icon: <KanbanIcon size={15} />,
         run: async () => void (await createItem("kanban", title)),
+      },
+      {
+        id: "new-cornell",
+        label: q ? `New Cornell note “${q}”` : "New Cornell note",
+        hint: "cornell",
+        icon: <CornellIcon size={15} />,
+        run: async () => void (await createItem("cornell", title)),
       },
     ];
     for (const it of items.filter((i) => i.title.toLowerCase().includes(q.toLowerCase())).slice(0, 8)) {
