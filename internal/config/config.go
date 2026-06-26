@@ -40,7 +40,9 @@ func Load(envPath string) Config {
 	return Config{
 		Port:         get("port", "8080"),
 		ShareBaseURL: strings.TrimRight(get("share_base_url", ""), "/"),
-		Password:     get("slate_password", ""),
+		// Accept the new SCRATCHPAD_PASSWORD; fall back to SLATE_PASSWORD for
+		// existing setups.
+		Password: firstNonEmpty(get("scratchpad_password", ""), get("slate_password", "")),
 		GitURL:       get("git_url", ""),
 		GitUser:      get("git_user", ""),
 		GitPAT:       get("git_pat", ""),
@@ -48,6 +50,15 @@ func Load(envPath string) Config {
 		DBPath:       get("db_path", "./scratchpad.db"),
 		AppName:      get("app_name", "Scratchpad"),
 	}
+}
+
+func firstNonEmpty(vals ...string) string {
+	for _, v := range vals {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
 }
 
 // SyncEnabled reports whether git sync is configured. SSH URLs (git@host:...)

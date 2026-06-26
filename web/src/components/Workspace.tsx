@@ -18,6 +18,15 @@ export function Workspace() {
   const [item, setItem] = useState<FullItem | null>(null);
   const [loading, setLoading] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  // Auto-reset the delete confirmation if the user doesn't act.
+  useEffect(() => {
+    if (!confirmDelete) return;
+    const t = setTimeout(() => setConfirmDelete(false), 3000);
+    return () => clearTimeout(t);
+  }, [confirmDelete]);
+  useEffect(() => setConfirmDelete(false), [activeId]);
 
   // Load the active item's content whenever the selection changes.
   useEffect(() => {
@@ -92,13 +101,22 @@ export function Workspace() {
             >
               <ShareIcon size={16} />
             </button>
-            <button
-              title="Delete"
-              onClick={() => deleteItem(item.id)}
-              className="rounded-md p-1.5 text-[var(--ink-faint)] transition hover:text-[var(--danger)]"
-            >
-              <TrashIcon size={16} />
-            </button>
+            {confirmDelete ? (
+              <button
+                onClick={() => deleteItem(item.id)}
+                className="mono rounded-md border border-[var(--danger)] px-2 py-1 text-[11px] text-[var(--danger)] transition hover:bg-[var(--danger)] hover:text-white"
+              >
+                delete?
+              </button>
+            ) : (
+              <button
+                title="Delete"
+                onClick={() => setConfirmDelete(true)}
+                className="rounded-md p-1.5 text-[var(--ink-faint)] transition hover:text-[var(--danger)]"
+              >
+                <TrashIcon size={16} />
+              </button>
+            )}
           </>
         ) : (
           <span className="mono text-xs text-[var(--ink-faint)]">no document</span>

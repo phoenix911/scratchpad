@@ -28,6 +28,12 @@ export function ShareDialog({ itemId, onClose }: Props) {
     api.listShares(itemId).then(setLinks).catch(() => setLinks([]));
   }, [itemId]);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   async function create() {
     setBusy(true);
     try {
