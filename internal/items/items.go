@@ -8,11 +8,34 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
 	"scratchpad/internal/store"
 )
+
+// wikiLinkRe matches [[Title]] references used for backlinks.
+var wikiLinkRe = regexp.MustCompile(`\[\[([^\[\]]+)\]\]`)
+
+// extractLinks returns the de-duplicated [[Title]] targets in content.
+func extractLinks(content string) []string {
+	seen := map[string]struct{}{}
+	var out []string
+	for _, m := range wikiLinkRe.FindAllStringSubmatch(content, -1) {
+		t := strings.TrimSpace(m[1])
+		if t == "" {
+			continue
+		}
+		key := strings.ToLower(t)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		out = append(out, t)
+	}
+	return out
+}
 
 const (
 	TypeCode   = "code"
@@ -103,6 +126,7 @@ func (s *Service) Create(in CreateInput) (FullItem, error) {
 		_ = os.Remove(s.abs(it.Path))
 		return FullItem{}, err
 	}
+	_ = s.st.SetLinks(it.ID, extractLinks(in.Content))
 	s.changed()
 	return FullItem{Item: it, Content: in.Content}, nil
 }
@@ -169,6 +193,7 @@ func (s *Service) Update(id string, in UpdateInput) (FullItem, error) {
 		if err := s.writeFile(it.Path, *in.Content); err != nil {
 			return FullItem{}, err
 		}
+		_ = s.st.SetLinks(it.ID, extractLinks(*in.Content))
 	}
 	if err := s.st.UpsertItem(it); err != nil {
 		return FullItem{}, err

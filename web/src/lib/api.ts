@@ -25,6 +25,11 @@ export interface ShareLink {
   createdAt?: number;
 }
 
+export interface Backlinks {
+  backlinks: Item[];
+  outgoing: { title: string; item: Item | null }[];
+}
+
 export interface Commit {
   hash: string;
   short: string;
@@ -104,6 +109,9 @@ export const api = {
   historyVersion: (id: string, hash: string) =>
     req<{ content: string }>("GET", `/api/items/${id}/history/${hash}`).then((r) => r.content),
   restore: (id: string, hash: string) => req<FullItem>("POST", `/api/items/${id}/restore`, { hash }),
+
+  // backlinks
+  backlinks: (id: string) => req<Backlinks>("GET", `/api/items/${id}/backlinks`),
 
   // sync
   syncStatus: () => req<SyncStatus>("GET", "/api/sync/status"),

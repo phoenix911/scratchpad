@@ -66,6 +66,7 @@ func (s *Server) Router() http.Handler {
 			r.Get("/{id}/history", s.handleHistory)
 			r.Get("/{id}/history/{hash}", s.handleHistoryVersion)
 			r.Post("/{id}/restore", s.handleRestore)
+			r.Get("/{id}/backlinks", s.handleBacklinks)
 		})
 		r.Delete("/api/shares/{token}", s.handleRevokeShare)
 		r.Route("/api/folders", func(r chi.Router) {

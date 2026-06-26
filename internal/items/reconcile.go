@@ -80,7 +80,14 @@ func (s *Service) Reconcile() error {
 		}
 
 		seen[id] = struct{}{}
-		return s.st.UpsertItem(it)
+		if err := s.st.UpsertItem(it); err != nil {
+			return err
+		}
+		// Rebuild the [[wiki-link]] index from file content.
+		if b, rErr := os.ReadFile(path); rErr == nil {
+			_ = s.st.SetLinks(id, extractLinks(string(b)))
+		}
+		return nil
 	})
 	if err != nil {
 		return err

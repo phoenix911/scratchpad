@@ -5,6 +5,7 @@ import { FileBadge } from "./FileBadge";
 import { LanguageDropdown } from "./LanguageDropdown";
 import { ShareDialog } from "./ShareDialog";
 import { HistoryDialog } from "./HistoryDialog";
+import { LinksPanel } from "./LinksPanel";
 import { SyncPill } from "./SyncPill";
 import {
   PlusIcon,
@@ -189,6 +190,10 @@ function Inspector() {
       {item.type === "code" && (
         <LanguageDropdown value={item.language} onChange={(lang) => updateMeta(item.id, { language: lang })} />
       )}
+
+      <div className="mt-2">
+        <LinksPanel itemId={item.id} updatedAt={item.updatedAt} />
+      </div>
 
       <div className="mt-1.5 flex items-center gap-1">
         <button

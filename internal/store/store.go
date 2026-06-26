@@ -67,6 +67,13 @@ CREATE TABLE IF NOT EXISTS settings (
   key         TEXT PRIMARY KEY,
   value       TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS links (
+  from_id     TEXT NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+  to_title    TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_links_to ON links(to_title);
+CREATE INDEX IF NOT EXISTS idx_links_from ON links(from_id);
 `
 	_, err := s.db.Exec(schema)
 	return err
