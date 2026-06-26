@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"encoding/json"
+	"io/fs"
 	"net/http"
 	"runtime"
 
@@ -19,16 +20,17 @@ type Server struct {
 	st    *store.Store
 	items *items.Service
 	auth  *authenticator
+	dist  fs.FS
 	spa   http.Handler
 }
 
-// NewServer wires the API. spa is the embedded SPA handler (fallback for client routes).
-func NewServer(cfg config.Config, st *store.Store, svc *items.Service, spa http.Handler) (*Server, error) {
+// NewServer wires the API. dist is the embedded SPA filesystem.
+func NewServer(cfg config.Config, st *store.Store, svc *items.Service, dist fs.FS) (*Server, error) {
 	auth, err := newAuthenticator(cfg, st)
 	if err != nil {
 		return nil, err
 	}
-	return &Server{cfg: cfg, st: st, items: svc, auth: auth, spa: spa}, nil
+	return &Server{cfg: cfg, st: st, items: svc, auth: auth, dist: dist, spa: SPAHandler(dist)}, nil
 }
 
 // Router builds the chi router with public + authed route groups.
@@ -42,7 +44,11 @@ func (s *Server) Router() http.Handler {
 	r.Post("/api/login", s.auth.handleLogin)
 	r.Post("/api/logout", s.auth.handleLogout)
 	r.Get("/api/me", s.handleMe)
-	// Public share routes (/s/:token, /api/share/:token) are added in M5.
+	// Public read-only share view (/s/:token is the SPA route that calls this).
+	r.Get("/api/share/{token}", s.handlePublicShare)
+	// Public share page (SPA HTML with injected OG tags) + the OG preview image.
+	r.Get("/s/{token}", s.handleSharePage)
+	r.Get("/og/{token}.png", s.handleOGImage)
 
 	// --- authed API ---
 	r.Group(func(r chi.Router) {
@@ -53,7 +59,10 @@ func (s *Server) Router() http.Handler {
 			r.Get("/{id}", s.handleGetItem)
 			r.Put("/{id}", s.handleUpdateItem)
 			r.Delete("/{id}", s.handleDeleteItem)
+			r.Post("/{id}/share", s.handleCreateShare)
+			r.Get("/{id}/shares", s.handleListShares)
 		})
+		r.Delete("/api/shares/{token}", s.handleRevokeShare)
 		r.Route("/api/folders", func(r chi.Router) {
 			r.Get("/", s.handleListFolders)
 			r.Post("/", s.handleFolderAction)

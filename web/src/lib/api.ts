@@ -18,11 +18,19 @@ export interface FullItem extends Item {
   content: string;
 }
 
-export interface Share {
+export interface ShareLink {
   token: string;
-  itemId: string;
+  url: string;
   expiresAt: number;
-  createdAt: number;
+  createdAt?: number;
+}
+
+export interface SharedView {
+  type: ItemType;
+  title: string;
+  language: string;
+  content: string;
+  expiresAt: number;
 }
 
 class ApiError extends Error {
@@ -67,6 +75,14 @@ export const api = {
     patch: Partial<Pick<Item, "title" | "folder" | "language">> & { content?: string },
   ) => req<FullItem>("PUT", `/api/items/${id}`, patch),
   deleteItem: (id: string) => req<void>("DELETE", `/api/items/${id}`),
+
+  // sharing
+  createShare: (id: string, ttlDays: number) =>
+    req<ShareLink>("POST", `/api/items/${id}/share`, { ttlDays }),
+  listShares: (id: string) =>
+    req<{ shares: ShareLink[] }>("GET", `/api/items/${id}/shares`).then((r) => r.shares ?? []),
+  revokeShare: (token: string) => req<void>("DELETE", `/api/shares/${token}`),
+  getShared: (token: string) => req<SharedView>("GET", `/api/share/${token}`),
 
   // folders
   listFolders: () => req<{ folders: string[] }>("GET", "/api/folders").then((r) => r.folders ?? []),

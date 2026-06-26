@@ -34,7 +34,7 @@ func main() {
 		log.Fatalf("reconcile data dir: %v", err)
 	}
 
-	srvAPI, err := httpapi.NewServer(cfg, st, svc, httpapi.SPAHandler(web.Dist()))
+	srvAPI, err := httpapi.NewServer(cfg, st, svc, web.Dist())
 	if err != nil {
 		log.Fatalf("init server: %v", err)
 	}

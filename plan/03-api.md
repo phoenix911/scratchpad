@@ -56,6 +56,16 @@ The SPA's `ShareView` renders:
 - `type:'code'` → CodeMirror in **read-only** mode.
 - `type:'draw'` → Excalidraw with **`viewModeEnabled: true`** (pan/zoom, no edit).
 
+### Link unfurls (Open Graph)
+```
+GET /s/:token       → SPA index.html with server-injected OG/Twitter meta
+GET /og/:token.png  → 1200×630 PNG: a random SFW funny caption + the item title
+```
+The page route injects `og:title`/`og:description`/`og:image` (+ `twitter:card`)
+into `<head>` server-side so crawlers see them without running JS. The image is
+generated in-process (`internal/og`, Go built-in fonts — no external assets); the
+caption is chosen deterministically from the token, so a link's preview is stable.
+
 ## Health
 ```
 GET /healthz → 200 { ok:true, rssBytes }

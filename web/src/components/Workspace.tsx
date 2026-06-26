@@ -3,6 +3,7 @@ import { useStore } from "../store";
 import { api, type FullItem } from "../lib/api";
 import { useDebouncedSave, type SaveState } from "../lib/useDebouncedSave";
 import { CodeEditor } from "./CodeEditor";
+import { ShareDialog } from "./ShareDialog";
 import { LANGS } from "../lib/langs";
 import { SunIcon, MoonIcon, TrashIcon, ShareIcon } from "./icons";
 
@@ -15,6 +16,7 @@ export function Workspace() {
   const { activeId, theme, toggleTheme, deleteItem, refresh } = useStore();
   const [item, setItem] = useState<FullItem | null>(null);
   const [loading, setLoading] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   // Load the active item's content whenever the selection changes.
   useEffect(() => {
@@ -83,7 +85,8 @@ export function Workspace() {
             )}
             <SaveBadge status={status} />
             <button
-              title="Share (coming soon)"
+              title="Share a view-only link"
+              onClick={() => setShareOpen(true)}
               className="rounded-md p-1.5 text-[var(--ink-faint)] transition hover:text-[var(--ink)]"
             >
               <ShareIcon size={16} />
@@ -127,6 +130,8 @@ export function Workspace() {
           </Suspense>
         )}
       </div>
+
+      {shareOpen && item && <ShareDialog itemId={item.id} onClose={() => setShareOpen(false)} />}
     </div>
   );
 }

@@ -11,6 +11,7 @@ interface Props {
   initialContent: string;
   language: string;
   onChange: (content: string) => void;
+  readOnly?: boolean;
 }
 
 // Resolve a language id (our ids ~ CodeMirror's names/aliases) to a LanguageSupport.
@@ -26,7 +27,7 @@ async function loadLanguage(lang: string) {
   }
 }
 
-export function CodeEditor({ docId, initialContent, language, onChange }: Props) {
+export function CodeEditor({ docId, initialContent, language, onChange, readOnly }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const langComp = useRef(new Compartment());
@@ -50,6 +51,7 @@ export function CodeEditor({ docId, initialContent, language, onChange }: Props)
         editorTheme(),
         langComp.current.of([]),
         EditorView.lineWrapping,
+        ...(readOnly ? [EditorState.readOnly.of(true), EditorView.editable.of(false)] : []),
         EditorView.updateListener.of((u) => {
           if (u.docChanged) onChangeRef.current(u.state.doc.toString());
         }),
