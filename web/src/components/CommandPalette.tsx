@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useStore } from "../store";
 import { FileBadge } from "./FileBadge";
-import { PlusIcon, DrawIcon, MindIcon, SunIcon, MoonIcon } from "./icons";
+import { PlusIcon, DrawIcon, MindIcon, DocIcon, KanbanIcon, SunIcon, MoonIcon } from "./icons";
 
 interface Cmd {
   id: string;
@@ -52,20 +52,27 @@ export function CommandPalette() {
         icon: <MindIcon size={15} />,
         run: async () => void (await createItem("mind", title)),
       },
+      {
+        id: "new-doc",
+        label: q ? `New doc “${q}”` : "New doc",
+        hint: "doc",
+        icon: <DocIcon size={15} />,
+        run: async () => void (await createItem("doc", title)),
+      },
+      {
+        id: "new-kanban",
+        label: q ? `New board “${q}”` : "New board",
+        hint: "kanban",
+        icon: <KanbanIcon size={15} />,
+        run: async () => void (await createItem("kanban", title)),
+      },
     ];
     for (const it of items.filter((i) => i.title.toLowerCase().includes(q.toLowerCase())).slice(0, 8)) {
       list.push({
         id: `open-${it.id}`,
         label: it.title,
         hint: it.folder || undefined,
-        icon:
-          it.type === "draw" ? (
-            <DrawIcon size={15} />
-          ) : it.type === "mind" ? (
-            <MindIcon size={15} />
-          ) : (
-            <FileBadge itemType="code" language={it.language} />
-          ),
+        icon: <FileBadge itemType={it.type} language={it.language} />,
         run: () => setActive(it.id),
       });
     }

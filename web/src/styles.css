@@ -122,6 +122,50 @@ body {
 
 .mono { font-family: var(--font-mono); }
 
+/* Tiptap rich-text content */
+.tiptap-content {
+  outline: none;
+  min-height: 100%;
+  color: var(--ink);
+  line-height: 1.7;
+  font-size: 14.5px;
+}
+.tiptap-content > * + * { margin-top: 0.7em; }
+.tiptap-content h1 { font-size: 1.7em; font-weight: 700; margin-top: 1.2em; letter-spacing: -0.01em; }
+.tiptap-content h2 { font-size: 1.35em; font-weight: 700; margin-top: 1em; }
+.tiptap-content h3 { font-size: 1.12em; font-weight: 600; margin-top: 0.9em; }
+.tiptap-content ul { list-style: disc; padding-left: 1.4em; }
+.tiptap-content ol { list-style: decimal; padding-left: 1.4em; }
+.tiptap-content li > * + * { margin-top: 0.3em; }
+.tiptap-content blockquote {
+  border-left: 3px solid var(--line-strong);
+  padding-left: 1em;
+  color: var(--ink-soft);
+}
+.tiptap-content code {
+  background: var(--hover);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+}
+.tiptap-content pre {
+  background: var(--sidebar);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.9em 1em;
+  overflow-x: auto;
+}
+.tiptap-content pre code { background: none; padding: 0; }
+.tiptap-content hr { border: none; border-top: 1px solid var(--line); margin: 1.2em 0; }
+.tiptap-content a { color: var(--accent); text-decoration: underline; }
+.tiptap-content p.is-editor-empty:first-child::before {
+  content: "Write something…";
+  color: var(--ink-faint);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
 /* Neo-brutalist primary action (the "New" button is the signature element):
    thick border + hard offset shadow, presses down on click. The border/shadow
    use --ink so it's dark-on-light and light-on-dark automatically. */

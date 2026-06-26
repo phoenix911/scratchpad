@@ -1,4 +1,4 @@
-import { fileTypeFor } from "../lib/filetypes";
+import { fileTypeFor, type ItemKind } from "../lib/filetypes";
 
 // A small monospace extension badge used as the file-type "icon": .go .py .ts .ed …
 // Tinted by language so types are scannable at a glance.
@@ -7,7 +7,7 @@ export function FileBadge({
   language,
   size = "sm",
 }: {
-  itemType: "code" | "draw" | "mind";
+  itemType: ItemKind;
   language: string;
   size?: "sm" | "md";
 }) {

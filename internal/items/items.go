@@ -15,14 +15,26 @@ import (
 )
 
 const (
-	TypeCode = "code"
-	TypeDraw = "draw"
-	TypeMind = "mind"
+	TypeCode   = "code"
+	TypeDraw   = "draw"
+	TypeMind   = "mind"
+	TypeDoc    = "doc"
+	TypeKanban = "kanban"
 
 	drawExt   = "excalidraw"
 	mindExt   = "mind"
+	docExt    = "doc"
+	kanbanExt = "kanban"
 	itemsRoot = "items"
 )
+
+func validType(t string) bool {
+	switch t {
+	case TypeCode, TypeDraw, TypeMind, TypeDoc, TypeKanban:
+		return true
+	}
+	return false
+}
 
 // ErrNotFound is re-exported so callers don't need the store package.
 var ErrNotFound = store.ErrNotFound
@@ -59,7 +71,7 @@ type CreateInput struct {
 
 // Create writes the file and indexes it.
 func (s *Service) Create(in CreateInput) (FullItem, error) {
-	if in.Type != TypeCode && in.Type != TypeDraw && in.Type != TypeMind {
+	if !validType(in.Type) {
 		return FullItem{}, fmt.Errorf("invalid type %q", in.Type)
 	}
 	title := strings.TrimSpace(in.Title)
@@ -194,6 +206,10 @@ func (s *Service) relPath(it store.Item) string {
 		ext = extForLanguage(it.Language)
 	case TypeMind:
 		ext = mindExt
+	case TypeDoc:
+		ext = docExt
+	case TypeKanban:
+		ext = kanbanExt
 	}
 	name := fmt.Sprintf("%s-%s.%s", slug(it.Title), it.ID, ext)
 	if it.Folder == "" {

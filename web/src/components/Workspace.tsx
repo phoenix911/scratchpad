@@ -7,6 +7,8 @@ import { CodeEditor } from "./CodeEditor";
 // Excalidraw + Mind Elixir are heavy — code-split so they load only when opened.
 const DrawCanvas = lazy(() => import("./DrawCanvas").then((m) => ({ default: m.DrawCanvas })));
 const MindCanvas = lazy(() => import("./MindCanvas").then((m) => ({ default: m.MindCanvas })));
+const TiptapEditor = lazy(() => import("./TiptapEditor").then((m) => ({ default: m.TiptapEditor })));
+const KanbanBoard = lazy(() => import("./KanbanBoard").then((m) => ({ default: m.KanbanBoard })));
 
 // The main pane is just the editor/canvas, full-bleed — all controls live in the
 // sidebar. A tiny unobtrusive save indicator floats in the corner.
@@ -57,6 +59,16 @@ export function Workspace() {
       {item && !loading && item.type === "mind" && (
         <Suspense fallback={<Centered>loading mindmap…</Centered>}>
           <MindCanvas docId={item.id} initialContent={item.content} onChange={schedule} />
+        </Suspense>
+      )}
+      {item && !loading && item.type === "doc" && (
+        <Suspense fallback={<Centered>loading…</Centered>}>
+          <TiptapEditor docId={item.id} initialContent={item.content} onChange={schedule} />
+        </Suspense>
+      )}
+      {item && !loading && item.type === "kanban" && (
+        <Suspense fallback={<Centered>loading board…</Centered>}>
+          <KanbanBoard docId={item.id} initialContent={item.content} onChange={schedule} />
         </Suspense>
       )}
       <SaveBadge status={status} />

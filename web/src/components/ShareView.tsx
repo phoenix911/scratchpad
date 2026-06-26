@@ -5,6 +5,8 @@ import { CodeEditor } from "./CodeEditor";
 
 const DrawCanvas = lazy(() => import("./DrawCanvas").then((m) => ({ default: m.DrawCanvas })));
 const MindCanvas = lazy(() => import("./MindCanvas").then((m) => ({ default: m.MindCanvas })));
+const TiptapEditor = lazy(() => import("./TiptapEditor").then((m) => ({ default: m.TiptapEditor })));
+const KanbanBoard = lazy(() => import("./KanbanBoard").then((m) => ({ default: m.KanbanBoard })));
 
 type State = { kind: "loading" } | { kind: "ok"; view: SharedView } | { kind: "error"; message: string };
 
@@ -62,6 +64,16 @@ export function ShareView({ token }: { token: string }) {
         {view.type === "mind" && (
           <Suspense fallback={<Centered>loading mindmap…</Centered>}>
             <MindCanvas docId={token} initialContent={view.content} viewMode />
+          </Suspense>
+        )}
+        {view.type === "doc" && (
+          <Suspense fallback={<Centered>loading…</Centered>}>
+            <TiptapEditor docId={token} initialContent={view.content} readOnly />
+          </Suspense>
+        )}
+        {view.type === "kanban" && (
+          <Suspense fallback={<Centered>loading board…</Centered>}>
+            <KanbanBoard docId={token} initialContent={view.content} readOnly />
           </Suspense>
         )}
       </div>

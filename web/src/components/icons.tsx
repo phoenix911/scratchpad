@@ -25,6 +25,19 @@ export const MindIcon = ({ size = 16, className }: P) => (
     <path d="M12 7v4M12 11c0 2-3 2-6 2.5M12 11c0 2 3 2 6 2.5M6 13.5V17M18 13.5V17" />
   </svg>
 );
+export const DocIcon = ({ size = 16, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <path d="M7 3h7l5 5v13a0 0 0 0 1 0 0H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" />
+    <path d="M14 3v5h5M9 13h6M9 17h6" />
+  </svg>
+);
+export const KanbanIcon = ({ size = 16, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <rect x="3" y="4" width="5" height="16" rx="1.2" />
+    <rect x="10" y="4" width="5" height="10" rx="1.2" />
+    <rect x="17" y="4" width="4" height="13" rx="1.2" />
+  </svg>
+);
 export const PlusIcon = ({ size = 16, className }: P) => (
   <svg {...base(size)} className={className}>
     <path d="M12 5v14M5 12h14" />
