@@ -47,11 +47,12 @@ func (s *Server) handleUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.sync.Schedule() // commit the asset with the next sync
-	writeJSON(w, http.StatusCreated, map[string]string{"url": "/assets/" + name})
+	writeJSON(w, http.StatusCreated, map[string]string{"url": "/uploads/" + name})
 }
 
-// handleAsset serves an uploaded image. PUBLIC — shared docs embed these. The
-// name is a single path segment (no traversal); directory listing is disallowed.
+// handleAsset serves an uploaded image at /uploads/<name>. PUBLIC — shared docs
+// embed these. Kept off /assets/ so it doesn't shadow the SPA's own bundles.
+// The name is a single path segment (no traversal); listing is disallowed.
 func (s *Server) handleAsset(w http.ResponseWriter, r *http.Request) {
 	name := chi.URLParam(r, "name")
 	if name == "" || strings.ContainsAny(name, "/\\") || strings.Contains(name, "..") {

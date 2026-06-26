@@ -51,8 +51,9 @@ func (s *Server) Router() http.Handler {
 	// Public share page (SPA HTML with injected OG tags) + the OG preview image.
 	r.Get("/s/{token}", s.handleSharePage)
 	r.Get("/og/{token}.png", s.handleOGImage)
-	// Public uploaded images (embedded in docs / shared pages).
-	r.Get("/assets/{name}", s.handleAsset)
+	// Public uploaded images (embedded in docs / shared pages). NOTE: must NOT be
+	// /assets/* — that path belongs to the SPA's own JS/CSS bundles.
+	r.Get("/uploads/{name}", s.handleAsset)
 
 	// --- authed API ---
 	r.Group(func(r chi.Router) {
