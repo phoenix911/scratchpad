@@ -20,11 +20,15 @@ Create any of them from the **⌘K** command palette.
 Every item has an optional **folder**. The sidebar groups items by folder
 (collapsible sections); items with no folder sit at the top.
 
-To move an item into a folder, open it and use the **folder field** in the
-sidebar inspector — type a name (existing folders autocomplete) and the item
-moves there. Typing a new name creates the folder; clearing it moves the item
-back to the top level. On disk this is just a subdirectory under
-`DATA_DIR/items/<folder>/`, so your folder structure is mirrored in the git repo.
+Two ways to move items:
+
+- **Drag and drop** — drag a file onto a folder to move it in, drag it between
+  folders, or drop it on empty tree space to move it back to the top level.
+- **Folder field** — open an item and type a folder name in the sidebar
+  inspector (existing folders autocomplete); a new name creates the folder.
+
+On disk this is just a subdirectory under `DATA_DIR/items/<folder>/`, so your
+folder structure is mirrored in the git repo.
 
 ## Notes
 
