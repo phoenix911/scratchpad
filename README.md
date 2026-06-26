@@ -94,25 +94,15 @@ sample systemd unit and the full walkthrough are in the
 - [Architecture](https://phoenix911.github.io/scratchpad/docs/architecture/) · [Data model](https://phoenix911.github.io/scratchpad/docs/data-model/) · [HTTP API](https://phoenix911.github.io/scratchpad/docs/api/)
 - [Item types](https://phoenix911.github.io/scratchpad/docs/item-types/)
 
-## Built with
+## Editors
 
-Scratchpad stands on the shoulders of excellent open-source projects:
+The editors and viewers are powered by these open-source libraries:
 
-**Backend**
-- [Go](https://go.dev) · [chi](https://github.com/go-chi/chi) (router) · [modernc.org/sqlite](https://pkg.go.dev/modernc.org/sqlite) (pure-Go SQLite) · [golang.org/x/image](https://pkg.go.dev/golang.org/x/image) (share-link images)
-
-**Frontend**
-- [React](https://react.dev) · [Vite](https://vite.dev) · [TypeScript](https://www.typescriptlang.org) · [Tailwind CSS](https://tailwindcss.com) · [Zustand](https://github.com/pmndrs/zustand)
-
-**Editors**
 - [CodeMirror](https://codemirror.net) — code
 - [Excalidraw](https://excalidraw.com) — drawings
 - [Mind Elixir](https://mind-elixir.com) — mindmaps
 - [Tiptap](https://tiptap.dev) — rich-text docs
-- [dnd-kit](https://dndkit.com) — kanban drag & drop
-
-**Docs site**
-- [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)
+- [dnd-kit](https://dndkit.com) — kanban boards
 
 ## Contributing
 
