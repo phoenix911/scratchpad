@@ -1,0 +1,83 @@
+name: excalidraw-autoupdate
+
+# Daily: check npm for a newer @excalidraw/excalidraw. If there is one, bump it,
+# rebuild the SPA + binary (which fails loudly if Excalidraw's API changed),
+# commit the bump, and publish a new release so the server can pick it up.
+# If the build breaks on the upgrade, no release is cut and an issue is opened.
+on:
+  schedule:
+    - cron: "0 6 * * *" # 06:00 UTC daily
+  workflow_dispatch: {} # allow manual runs
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Compare versions
+        id: ver
+        run: |
+          cd web
+          CURRENT=$(node -p "require('./package-lock.json').packages['node_modules/@excalidraw/excalidraw'].version")
+          LATEST=$(npm view @excalidraw/excalidraw version)
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "latest=$LATEST"   >> "$GITHUB_OUTPUT"
+          if [ "$CURRENT" = "$LATEST" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Already on $CURRENT — nothing to do."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Update available: $CURRENT -> $LATEST"
+          fi
+
+      - name: Bump + build (verifies the new version compiles)
+        if: steps.ver.outputs.changed == 'true'
+        run: |
+          cd web
+          npm install "@excalidraw/excalidraw@${{ steps.ver.outputs.latest }}"
+          npm run build
+          cd ..
+          go build ./...
+          GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o scratchpad-linux-amd64 ./cmd/scratchpad
+
+      - name: Commit the bump
+        if: steps.ver.outputs.changed == 'true'
+        run: |
+          git config user.name  "phoenix911"
+          git config user.email "sangeet.verma91@gmail.com"
+          git add web/package.json web/package-lock.json
+          git commit -m "update excalidraw to ${{ steps.ver.outputs.latest }}"
+          git push
+
+      - name: Publish release
+        if: steps.ver.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v0.2.$(date +%d%m%y%H%M%S)"
+          gh release create "$TAG" scratchpad-linux-amd64 \
+            --target main --title "$TAG" \
+            --notes "Auto-update: excalidraw ${{ steps.ver.outputs.current }} → ${{ steps.ver.outputs.latest }}"
+
+      - name: Open an issue if the upgrade broke the build
+        if: failure() && steps.ver.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create \
+            --title "Excalidraw auto-update to ${{ steps.ver.outputs.latest }} failed to build" \
+            --body "The build broke upgrading @excalidraw/excalidraw from ${{ steps.ver.outputs.current }} to ${{ steps.ver.outputs.latest }} — most likely an API change. Fix \`web/src/components/DrawCanvas.tsx\` (props / serializeAsJSON / type import paths / CSS import), then bump manually. No release was published." \
+            || true
