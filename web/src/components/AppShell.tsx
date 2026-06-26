@@ -4,9 +4,17 @@ import { Sidebar } from "./Sidebar";
 import { Workspace } from "./Workspace";
 import { CommandPalette } from "./CommandPalette";
 import { PanelIcon } from "./icons";
+import { setTitle } from "../lib/favicon";
 
 export function AppShell() {
   const { setPalette, paletteOpen, sidebarCollapsed, toggleSidebar } = useStore();
+  const activeId = useStore((s) => s.activeId);
+  const items = useStore((s) => s.items);
+
+  // Reflect the open file in the tab title.
+  useEffect(() => {
+    setTitle(items.find((i) => i.id === activeId)?.title);
+  }, [activeId, items]);
 
   // ⌘K / Ctrl-K palette, ⌘\ toggles the sidebar.
   useEffect(() => {

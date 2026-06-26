@@ -25,6 +25,13 @@ export interface ShareLink {
   createdAt?: number;
 }
 
+export interface Commit {
+  hash: string;
+  short: string;
+  date: number;
+  message: string;
+}
+
 export interface SyncStatus {
   enabled: boolean;
   state: "off" | "idle" | "syncing" | "conflict" | "error";
@@ -90,6 +97,13 @@ export const api = {
     req<{ shares: ShareLink[] }>("GET", `/api/items/${id}/shares`).then((r) => r.shares ?? []),
   revokeShare: (token: string) => req<void>("DELETE", `/api/shares/${token}`),
   getShared: (token: string) => req<SharedView>("GET", `/api/share/${token}`),
+
+  // history
+  history: (id: string) =>
+    req<{ commits: Commit[]; syncEnabled: boolean }>("GET", `/api/items/${id}/history`),
+  historyVersion: (id: string, hash: string) =>
+    req<{ content: string }>("GET", `/api/items/${id}/history/${hash}`).then((r) => r.content),
+  restore: (id: string, hash: string) => req<FullItem>("POST", `/api/items/${id}/restore`, { hash }),
 
   // sync
   syncStatus: () => req<SyncStatus>("GET", "/api/sync/status"),

@@ -14,6 +14,7 @@ const KanbanBoard = lazy(() => import("./KanbanBoard").then((m) => ({ default: m
 // sidebar. A tiny unobtrusive save indicator floats in the corner.
 export function Workspace() {
   const activeId = useStore((s) => s.activeId);
+  const reloadNonce = useStore((s) => s.reloadNonce);
   const [item, setItem] = useState<FullItem | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -32,7 +33,7 @@ export function Workspace() {
     return () => {
       alive = false;
     };
-  }, [activeId]);
+  }, [activeId, reloadNonce]);
 
   const { schedule, status } = useDebouncedSave<string>(async (content) => {
     if (!activeId) return;

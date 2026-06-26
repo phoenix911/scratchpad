@@ -4,6 +4,7 @@ import type { Item } from "../lib/api";
 import { FileBadge } from "./FileBadge";
 import { LanguageDropdown } from "./LanguageDropdown";
 import { ShareDialog } from "./ShareDialog";
+import { HistoryDialog } from "./HistoryDialog";
 import { SyncPill } from "./SyncPill";
 import {
   PlusIcon,
@@ -12,6 +13,7 @@ import {
   ChevronRightIcon,
   ShareIcon,
   TrashIcon,
+  ClockIcon,
   SunIcon,
   MoonIcon,
   PanelIcon,
@@ -165,6 +167,7 @@ function Inspector() {
   const { items, activeId, updateMeta, deleteItem } = useStore();
   const item = items.find((i) => i.id === activeId);
   const [shareOpen, setShareOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   if (!item) return null;
@@ -194,6 +197,13 @@ function Inspector() {
         >
           <ShareIcon size={14} /> Share
         </button>
+        <button
+          onClick={() => setHistoryOpen(true)}
+          title="Version history"
+          className="rounded-[var(--radius)] border border-[var(--line)] p-1.5 text-[var(--ink-faint)] transition hover:bg-[var(--hover)] hover:text-[var(--ink)]"
+        >
+          <ClockIcon size={14} />
+        </button>
         {confirmDelete ? (
           <button
             onClick={() => deleteItem(item.id)}
@@ -216,6 +226,9 @@ function Inspector() {
       </div>
 
       {shareOpen && <ShareDialog itemId={item.id} onClose={() => setShareOpen(false)} />}
+      {historyOpen && (
+        <HistoryDialog itemId={item.id} type={item.type} language={item.language} onClose={() => setHistoryOpen(false)} />
+      )}
     </div>
   );
 }

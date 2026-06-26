@@ -63,6 +63,9 @@ func (s *Server) Router() http.Handler {
 			r.Delete("/{id}", s.handleDeleteItem)
 			r.Post("/{id}/share", s.handleCreateShare)
 			r.Get("/{id}/shares", s.handleListShares)
+			r.Get("/{id}/history", s.handleHistory)
+			r.Get("/{id}/history/{hash}", s.handleHistoryVersion)
+			r.Post("/{id}/restore", s.handleRestore)
 		})
 		r.Delete("/api/shares/{token}", s.handleRevokeShare)
 		r.Route("/api/folders", func(r chi.Router) {

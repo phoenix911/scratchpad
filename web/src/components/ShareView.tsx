@@ -1,12 +1,8 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { api, type SharedView } from "../lib/api";
 import { ApiError } from "../lib/api";
-import { CodeEditor } from "./CodeEditor";
-
-const DrawCanvas = lazy(() => import("./DrawCanvas").then((m) => ({ default: m.DrawCanvas })));
-const MindCanvas = lazy(() => import("./MindCanvas").then((m) => ({ default: m.MindCanvas })));
-const TiptapEditor = lazy(() => import("./TiptapEditor").then((m) => ({ default: m.TiptapEditor })));
-const KanbanBoard = lazy(() => import("./KanbanBoard").then((m) => ({ default: m.KanbanBoard })));
+import { ItemViewer } from "./ItemViewer";
+import { setTitle } from "../lib/favicon";
 
 type State = { kind: "loading" } | { kind: "ok"; view: SharedView } | { kind: "error"; message: string };
 
@@ -17,7 +13,10 @@ export function ShareView({ token }: { token: string }) {
   useEffect(() => {
     api
       .getShared(token)
-      .then((view) => setState({ kind: "ok", view }))
+      .then((view) => {
+        setState({ kind: "ok", view });
+        setTitle(view.title);
+      })
       .catch((err) => {
         const message =
           err instanceof ApiError && err.status === 410
@@ -53,29 +52,7 @@ export function ShareView({ token }: { token: string }) {
         </span>
       </header>
       <div className="min-h-0 flex-1">
-        {view.type === "code" && (
-          <CodeEditor docId={token} initialContent={view.content} language={view.language} onChange={() => {}} readOnly />
-        )}
-        {view.type === "draw" && (
-          <Suspense fallback={<Centered>loading canvas…</Centered>}>
-            <DrawCanvas docId={token} initialContent={view.content} viewMode />
-          </Suspense>
-        )}
-        {view.type === "mind" && (
-          <Suspense fallback={<Centered>loading mindmap…</Centered>}>
-            <MindCanvas docId={token} initialContent={view.content} viewMode />
-          </Suspense>
-        )}
-        {view.type === "doc" && (
-          <Suspense fallback={<Centered>loading…</Centered>}>
-            <TiptapEditor docId={token} initialContent={view.content} readOnly />
-          </Suspense>
-        )}
-        {view.type === "kanban" && (
-          <Suspense fallback={<Centered>loading board…</Centered>}>
-            <KanbanBoard docId={token} initialContent={view.content} readOnly />
-          </Suspense>
-        )}
+        <ItemViewer type={view.type} content={view.content} language={view.language} docId={token} />
       </div>
     </div>
   );

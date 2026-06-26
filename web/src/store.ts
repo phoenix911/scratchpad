@@ -14,6 +14,7 @@ interface AppState {
   activeId: string | null;
   paletteOpen: boolean;
   sidebarCollapsed: boolean;
+  reloadNonce: number; // bump to force the open editor to reload its content
 
   init: () => Promise<void>;
   login: (password: string) => Promise<void>;
@@ -23,6 +24,7 @@ interface AppState {
   setPalette: (open: boolean) => void;
   toggleTheme: () => void;
   toggleSidebar: () => void;
+  bumpReload: () => void;
 
   createItem: (type: ItemType, title: string, folder?: string) => Promise<Item>;
   updateMeta: (id: string, patch: Partial<Pick<Item, "title" | "folder" | "language">>) => Promise<void>;
@@ -57,6 +59,7 @@ export const useStore = create<AppState>((set, get) => ({
   activeId: null,
   paletteOpen: false,
   sidebarCollapsed: localStorage.getItem("scratchpad-sidebar") === "collapsed",
+  reloadNonce: 0,
 
   init: async () => {
     applyTheme(get().theme);
@@ -97,6 +100,7 @@ export const useStore = create<AppState>((set, get) => ({
 
   setActive: (id) => set({ activeId: id }),
   setPalette: (open) => set({ paletteOpen: open }),
+  bumpReload: () => set((s) => ({ reloadNonce: s.reloadNonce + 1 })),
 
   toggleTheme: () => {
     const theme: Theme = get().theme === "dark" ? "light" : "dark";
