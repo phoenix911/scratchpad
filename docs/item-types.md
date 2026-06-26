@@ -11,14 +11,15 @@ only in their editor and on-disk format.
 | Mindmap | `.mm` | [Mind Elixir](https://mind-elixir.com) | tree JSON | `.mind` |
 | Doc | `.doc` | [Tiptap](https://tiptap.dev) | HTML | `.doc` |
 | Board | `.kb` | custom Kanban (dnd-kit) | board JSON | `.kanban` |
-| Cornell note | `.cn` | built-in cue / notes / summary layout | JSON | `.cornell` |
+| Cornell note | `.cn` | cue / notes / summary layout (Markdown auto-formats) | JSON | `.cornell` |
 
 Create any of them from the **⌘K** command palette.
 
 ## Organizing in folders
 
-Every item has an optional **folder**. The sidebar groups items by folder
-(collapsible sections); items with no folder sit at the top.
+Every item has an optional **folder**, and folders can be **nested**
+(`work/projects/alpha`). The sidebar shows them as a collapsible tree; items
+with no folder sit at the top.
 
 Two ways to move items:
 

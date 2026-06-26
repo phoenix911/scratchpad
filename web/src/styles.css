@@ -167,7 +167,7 @@ body {
 .tiptap-content img.ProseMirror-selectednode { outline: 2px solid var(--accent); }
 .tiptap-content a { color: var(--accent); text-decoration: underline; }
 .tiptap-content p.is-editor-empty:first-child::before {
-  content: "Write something…";
+  content: attr(data-placeholder);
   color: var(--ink-faint);
   float: left;
   height: 0;

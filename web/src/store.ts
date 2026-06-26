@@ -56,7 +56,7 @@ export const useStore = create<AppState>((set, get) => ({
   themeManual: initial.manual,
   items: [],
   folders: [],
-  activeId: null,
+  activeId: localStorage.getItem("scratchpad-active"),
   paletteOpen: false,
   sidebarCollapsed: localStorage.getItem("scratchpad-sidebar") === "collapsed",
   reloadNonce: 0,
@@ -75,8 +75,10 @@ export const useStore = create<AppState>((set, get) => ({
       const me = await api.me();
       set({ auth: "in", appName: me.app ?? "scratchpad" });
       await get().refresh();
+      // Restore the last open item across refreshes; fall back to the newest.
       const { items, activeId } = get();
-      if (!activeId && items.length > 0) set({ activeId: items[0].id });
+      const exists = activeId && items.some((i) => i.id === activeId);
+      if (!exists) get().setActive(items.length > 0 ? items[0].id : null);
     } catch {
       set({ auth: "out" });
     }
@@ -98,7 +100,11 @@ export const useStore = create<AppState>((set, get) => ({
     set({ items, folders });
   },
 
-  setActive: (id) => set({ activeId: id }),
+  setActive: (id) => {
+    if (id) localStorage.setItem("scratchpad-active", id);
+    else localStorage.removeItem("scratchpad-active");
+    set({ activeId: id });
+  },
   setPalette: (open) => set({ paletteOpen: open }),
   bumpReload: () => set((s) => ({ reloadNonce: s.reloadNonce + 1 })),
 
