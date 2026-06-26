@@ -31,20 +31,26 @@ func (s *Server) handleCreateShare(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		TTLDays int `json:"ttlDays"`
 	}
-	_ = decodeJSON(r, &body) // empty body is fine → default TTL
+	_ = decodeJSON(r, &body) // empty body is fine → never expires
 
-	days := body.TTLDays
-	if days < shareTTLMinDays {
-		days = shareTTLMinDays
-	}
-	if days > shareTTLMaxDays {
-		days = shareTTLMaxDays
-	}
+	// ttlDays <= 0 means "never" (expires_at = 0); a positive value is clamped
+	// to [1, 30] days. Never is the default.
 	now := time.Now()
+	var expiresAt int64 // 0 = never
+	if body.TTLDays > 0 {
+		days := body.TTLDays
+		if days < shareTTLMinDays {
+			days = shareTTLMinDays
+		}
+		if days > shareTTLMaxDays {
+			days = shareTTLMaxDays
+		}
+		expiresAt = now.Add(time.Duration(days) * 24 * time.Hour).Unix()
+	}
 	sh := store.Share{
 		Token:     newShareToken(),
 		ItemID:    id,
-		ExpiresAt: now.Add(time.Duration(days) * 24 * time.Hour).Unix(),
+		ExpiresAt: expiresAt,
 		CreatedAt: now.Unix(),
 	}
 	if err := s.st.CreateShare(sh); err != nil {
@@ -105,7 +111,7 @@ func (s *Server) handlePublicShare(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	if time.Now().Unix() >= sh.ExpiresAt {
+	if sh.ExpiresAt != 0 && time.Now().Unix() >= sh.ExpiresAt {
 		_ = s.st.DeleteShare(token)
 		writeErr(w, http.StatusGone, "this link has expired")
 		return

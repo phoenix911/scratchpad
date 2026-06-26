@@ -1,5 +1,4 @@
-// Minimal inline icon set — stroke-based, sized via `size`. Keeps the bundle
-// dependency-free and consistent with the drafting aesthetic.
+// Minimal inline icon set — stroke-based, sized via `size`. Dependency-free.
 type P = { size?: number; className?: string };
 const base = (size: number) => ({
   width: size,
@@ -7,25 +6,15 @@ const base = (size: number) => ({
   viewBox: "0 0 24 24",
   fill: "none",
   stroke: "currentColor",
-  strokeWidth: 1.6,
+  strokeWidth: 1.7,
   strokeLinecap: "round" as const,
   strokeLinejoin: "round" as const,
 });
 
-export const CodeIcon = ({ size = 16, className }: P) => (
-  <svg {...base(size)} className={className}>
-    <path d="m8 8-4 4 4 4M16 8l4 4-4 4M13.5 6l-3 12" />
-  </svg>
-);
 export const DrawIcon = ({ size = 16, className }: P) => (
   <svg {...base(size)} className={className}>
-    <path d="M12 19l7-7a2.1 2.1 0 0 0-3-3l-7 7-1 4 4-1Z" />
-    <path d="M14 7l3 3" />
-  </svg>
-);
-export const FolderIcon = ({ size = 16, className }: P) => (
-  <svg {...base(size)} className={className}>
-    <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" />
+    <path d="M4 16.5 14.5 6a2 2 0 0 1 3 3L7 19.5 3 21l1.5-4Z" />
+    <path d="M12.5 7.5 16 11" />
   </svg>
 );
 export const PlusIcon = ({ size = 16, className }: P) => (
@@ -37,6 +26,21 @@ export const SearchIcon = ({ size = 16, className }: P) => (
   <svg {...base(size)} className={className}>
     <circle cx="11" cy="11" r="7" />
     <path d="m21 21-4.3-4.3" />
+  </svg>
+);
+export const ChevronIcon = ({ size = 16, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);
+export const ChevronRightIcon = ({ size = 16, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <path d="m9 6 6 6-6 6" />
+  </svg>
+);
+export const CheckIcon = ({ size = 16, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <path d="M20 6 9 17l-5-5" />
   </svg>
 );
 export const SunIcon = ({ size = 16, className }: P) => (
@@ -52,14 +56,18 @@ export const MoonIcon = ({ size = 16, className }: P) => (
 );
 export const ShareIcon = ({ size = 16, className }: P) => (
   <svg {...base(size)} className={className}>
-    <circle cx="18" cy="5" r="2.5" />
-    <circle cx="6" cy="12" r="2.5" />
-    <circle cx="18" cy="19" r="2.5" />
-    <path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4" />
+    <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7" />
+    <path d="M12 15V3M8 7l4-4 4 4" />
   </svg>
 );
 export const TrashIcon = ({ size = 16, className }: P) => (
   <svg {...base(size)} className={className}>
     <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" />
+  </svg>
+);
+export const PanelIcon = ({ size = 16, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <rect x="3" y="4" width="18" height="16" rx="2" />
+    <path d="M15 4v16" />
   </svg>
 );

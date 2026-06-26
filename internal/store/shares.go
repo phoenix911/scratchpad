@@ -66,8 +66,9 @@ func (s *Store) DeleteShare(token string) error {
 }
 
 // DeleteExpiredShares purges shares past their expiry as of `now` (unix seconds).
+// expires_at = 0 means "never" and is never pruned.
 func (s *Store) DeleteExpiredShares(now int64) (int64, error) {
-	res, err := s.db.Exec(`DELETE FROM shares WHERE expires_at < ?`, now)
+	res, err := s.db.Exec(`DELETE FROM shares WHERE expires_at != 0 AND expires_at < ?`, now)
 	if err != nil {
 		return 0, err
 	}

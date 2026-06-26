@@ -8,10 +8,12 @@ interface AppState {
   auth: AuthState;
   appName: string;
   theme: Theme;
+  themeManual: boolean; // true once the user toggles; then we stop following the OS
   items: Item[];
   folders: string[];
   activeId: string | null;
   paletteOpen: boolean;
+  sidebarCollapsed: boolean;
 
   init: () => Promise<void>;
   login: (password: string) => Promise<void>;
@@ -20,40 +22,56 @@ interface AppState {
   setActive: (id: string | null) => void;
   setPalette: (open: boolean) => void;
   toggleTheme: () => void;
+  toggleSidebar: () => void;
 
   createItem: (type: ItemType, title: string, folder?: string) => Promise<Item>;
+  updateMeta: (id: string, patch: Partial<Pick<Item, "title" | "folder" | "language">>) => Promise<void>;
   deleteItem: (id: string) => Promise<void>;
 }
 
-function loadTheme(): Theme {
-  // Default to dark — it's a code tool, and the graphite drafting surface is the
-  // primary identity. Honor an explicit saved choice either way.
+function systemTheme(): Theme {
+  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function loadTheme(): { theme: Theme; manual: boolean } {
   const saved = localStorage.getItem("scratchpad-theme");
-  return saved === "light" ? "light" : "dark";
+  if (saved === "light" || saved === "dark") return { theme: saved, manual: true };
+  return { theme: systemTheme(), manual: false };
 }
 
 function applyTheme(theme: Theme) {
-  document.documentElement.classList.toggle("light", theme === "light");
-  document.documentElement.classList.toggle("dark", theme === "dark");
-  localStorage.setItem("scratchpad-theme", theme);
+  const root = document.documentElement;
+  root.classList.toggle("light", theme === "light");
+  root.classList.toggle("dark", theme === "dark");
 }
+
+const initial = loadTheme();
 
 export const useStore = create<AppState>((set, get) => ({
   auth: "loading",
-  appName: "Scratchpad",
-  theme: loadTheme(),
+  appName: "scratchpad",
+  theme: initial.theme,
+  themeManual: initial.manual,
   items: [],
   folders: [],
   activeId: null,
   paletteOpen: false,
+  sidebarCollapsed: localStorage.getItem("scratchpad-sidebar") === "collapsed",
 
   init: async () => {
     applyTheme(get().theme);
+    // Follow the OS theme until the user manually picks one.
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+      if (get().themeManual) return;
+      const theme: Theme = e.matches ? "dark" : "light";
+      applyTheme(theme);
+      set({ theme });
+    });
+
     try {
       const me = await api.me();
-      set({ auth: "in", appName: me.app ?? "Scratchpad" });
+      set({ auth: "in", appName: me.app ?? "scratchpad" });
       await get().refresh();
-      // Open the most recently edited item on first load.
       const { items, activeId } = get();
       if (!activeId && items.length > 0) set({ activeId: items[0].id });
     } catch {
@@ -83,14 +101,26 @@ export const useStore = create<AppState>((set, get) => ({
   toggleTheme: () => {
     const theme: Theme = get().theme === "dark" ? "light" : "dark";
     applyTheme(theme);
-    set({ theme });
+    localStorage.setItem("scratchpad-theme", theme);
+    set({ theme, themeManual: true });
+  },
+
+  toggleSidebar: () => {
+    const collapsed = !get().sidebarCollapsed;
+    localStorage.setItem("scratchpad-sidebar", collapsed ? "collapsed" : "open");
+    set({ sidebarCollapsed: collapsed });
   },
 
   createItem: async (type, title, folder) => {
-    const it = await api.createItem({ type, title, folder, content: type === "draw" ? "" : "" });
+    const it = await api.createItem({ type, title, folder, content: "" });
     await get().refresh();
     set({ activeId: it.id });
     return it;
+  },
+
+  updateMeta: async (id, patch) => {
+    await api.updateItem(id, patch);
+    await get().refresh();
   },
 
   deleteItem: async (id) => {

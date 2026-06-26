@@ -1,52 +1,69 @@
 @import "tailwindcss";
 
 /* ───────────────────────────────────────────────────────────────────────────
-   Scratchpad — "the engineer's scratchpad"
-   A digital drafting surface. The through-line is grid/dot paper; cobalt ink is
-   the one accent. Native Apple type (SF Pro / SF Mono) → zero font downloads.
+   Scratchpad — "Notion, but monospace (IDE feel)"
+   Flat clean surfaces, neutral palette, one quiet blue accent, all-mono type.
+   Theme follows the system; light/dark token sets applied via a root class.
    ─────────────────────────────────────────────────────────────────────────── */
 
-:root {
-  /* dark "graphite drafting" — the primary surface */
-  --paper: #0f1218;
-  --paper-raised: #161a22;
-  --panel: rgba(20, 24, 32, 0.72);
-  --grid: rgba(150, 170, 220, 0.05);
-  --grid-strong: rgba(150, 170, 220, 0.08);
-  --ink: #e9ecf4;
-  --ink-soft: #98a0b3;
-  --ink-faint: #5c6478;
-  --edge: #242a36;
-  --edge-soft: #1c212b;
-  --accent: #4d6df5; /* cobalt ink */
-  --accent-soft: rgba(77, 109, 245, 0.16);
-  --accent-line: rgba(77, 109, 245, 0.5);
-  --danger: #f0617a;
-  --radius: 12px;
+:root.light {
+  --page: #ffffff;
+  --sidebar: #f7f7f5;
+  --raised: #ffffff;
+  --ink: #37352f;
+  --ink-soft: #787774;
+  --ink-faint: #9b9a97;
+  --hover: rgba(55, 53, 47, 0.06);
+  --active: rgba(55, 53, 47, 0.08);
+  --line: rgba(55, 53, 47, 0.09);
+  --line-strong: rgba(55, 53, 47, 0.16);
+  --accent: #2383e2;
+  --accent-soft: rgba(35, 131, 226, 0.12);
+  --danger: #e03e3e;
 
-  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", monospace;
+  /* syntax tokens */
+  --tok-comment: #9b9a97;
+  --tok-keyword: #9a4d9e;
+  --tok-string: #2a7d4f;
+  --tok-number: #b5630b;
+  --tok-func: #2557a6;
+  --tok-type: #0f7a86;
+  --tok-prop: #4f5bd5;
+  --tok-punct: #787774;
+
+  color-scheme: light;
+}
+
+:root.dark {
+  --page: #191919;
+  --sidebar: #202020;
+  --raised: #252525;
+  --ink: #e9e9e7;
+  --ink-soft: #9b9b9b;
+  --ink-faint: #6f6f6f;
+  --hover: rgba(255, 255, 255, 0.055);
+  --active: rgba(255, 255, 255, 0.086);
+  --line: rgba(255, 255, 255, 0.094);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --accent: #529cca;
+  --accent-soft: rgba(82, 156, 202, 0.16);
+  --danger: #ff7369;
+
+  --tok-comment: #6f6f6f;
+  --tok-keyword: #c98bdb;
+  --tok-string: #6fd3a0;
+  --tok-number: #e0a878;
+  --tok-func: #7aa2ff;
+  --tok-type: #54c7d4;
+  --tok-prop: #9ab4ff;
+  --tok-punct: #9b9b9b;
 
   color-scheme: dark;
 }
 
-:root.light {
-  /* cool engineering-pad paper — NOT warm cream */
-  --paper: #f6f7f4;
-  --paper-raised: #ffffff;
-  --panel: rgba(255, 255, 255, 0.74);
-  --grid: rgba(40, 60, 110, 0.06);
-  --grid-strong: rgba(40, 60, 110, 0.1);
-  --ink: #1a1f29;
-  --ink-soft: #5a6172;
-  --ink-faint: #99a0b0;
-  --edge: #dfe2da;
-  --edge-soft: #e9ece5;
-  --accent: #3a57d8;
-  --accent-soft: rgba(58, 87, 216, 0.12);
-  --accent-line: rgba(58, 87, 216, 0.45);
-  --danger: #d2425f;
-  color-scheme: light;
+:root {
+  --radius: 6px;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Menlo", "Consolas", monospace;
 }
 
 html,
@@ -57,76 +74,77 @@ body,
 
 body {
   margin: 0;
+  background: var(--page);
   color: var(--ink);
-  font-family: var(--font-ui);
+  font-family: var(--font-mono);
+  font-size: 14px;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-
-  /* The signature: engineering grid paper. Fine 24px grid + stronger major
-     lines every 120px + dots at the major intersections. Pure CSS, no images. */
-  background-color: var(--paper);
-  background-image:
-    radial-gradient(var(--grid-strong) 1.2px, transparent 1.4px),
-    linear-gradient(var(--grid-strong) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-strong) 1px, transparent 1px),
-    linear-gradient(var(--grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-  background-size:
-    120px 120px,
-    120px 120px,
-    120px 120px,
-    24px 24px,
-    24px 24px;
-  background-position: -1px -1px;
 }
 
-/* Quiet, disciplined scrollbars */
+/* Quiet scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--edge) transparent;
+  scrollbar-color: var(--line-strong) transparent;
 }
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--edge);
+  background: var(--line-strong);
   border-radius: 999px;
   border: 3px solid transparent;
   background-clip: content-box;
 }
 
-/* Blinking block caret for the wordmark — "a scratchpad waiting for input" */
-@keyframes caret-blink {
-  0%, 49% { opacity: 1; }
-  50%, 100% { opacity: 0; }
-}
-.caret {
-  display: inline-block;
-  width: 0.5em;
-  height: 1.05em;
-  margin-left: 2px;
-  translate: 0 0.14em;
-  background: var(--accent);
-  animation: caret-blink 1.1s steps(1) infinite;
-}
-
 @keyframes pop-in {
-  from { opacity: 0; transform: translateY(6px) scale(0.985); }
+  from { opacity: 0; transform: translateY(4px) scale(0.99); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
-.pop-in { animation: pop-in 0.16s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.pop-in { animation: pop-in 0.13s ease-out; }
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.fade-in { animation: fade-in 0.12s ease-out; }
 
 @media (prefers-reduced-motion: reduce) {
-  *, .pop-in { animation: none !important; transition: none !important; }
-  .caret { animation: none; opacity: 1; }
+  *, .pop-in, .fade-in { animation: none !important; transition: none !important; }
 }
 
-/* Focus discipline — visible cobalt ring everywhere */
 :focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 6px;
+  outline-offset: 1px;
+  border-radius: 4px;
 }
 
 .mono { font-family: var(--font-mono); }
+
+/* Neo-brutalist primary action (the "New" button is the signature element):
+   thick border + hard offset shadow, presses down on click. The border/shadow
+   use --ink so it's dark-on-light and light-on-dark automatically. */
+.btn-brutal {
+  background: var(--accent);
+  color: #ffffff;
+  border: 2px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  border-radius: 5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.btn-brutal:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.btn-brutal:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+.btn-brutal:disabled {
+  opacity: 0.55;
+  box-shadow: 3px 3px 0 var(--ink);
+  transform: none;
+}

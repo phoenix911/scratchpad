@@ -1,10 +1,18 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="dark light" />
+    <meta name="color-scheme" content="light dark" />
     <title>Scratchpad</title>
+    <script>
+      // Set the theme class before paint to avoid a flash.
+      try {
+        var s = localStorage.getItem("scratchpad-theme");
+        var dark = s ? s === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.classList.add(dark ? "dark" : "light");
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useStore } from "../store";
-import { CodeIcon, DrawIcon, PlusIcon, SunIcon, MoonIcon } from "./icons";
+import { FileBadge } from "./FileBadge";
+import { PlusIcon, DrawIcon, SunIcon, MoonIcon } from "./icons";
 
 interface Cmd {
   id: string;
@@ -10,9 +11,8 @@ interface Cmd {
   run: () => void | Promise<void>;
 }
 
-// The ⌘K palette: a REPL-style launcher. Type to filter; a leading `›` prompt
-// signals "give me a command". Create flows: when the query doesn't match an
-// existing item, offer to create a snippet or drawing titled by the query.
+// ⌘K launcher: type to filter; create a snippet/drawing from the query, jump to
+// a file, or toggle the theme. Clean card, gray hover, monospace.
 export function CommandPalette() {
   const { paletteOpen, setPalette, items, setActive, createItem, toggleTheme, theme } = useStore();
   const [query, setQuery] = useState("");
@@ -29,53 +29,44 @@ export function CommandPalette() {
 
   const commands = useMemo<Cmd[]>(() => {
     const q = query.trim();
-    const list: Cmd[] = [];
-
     const title = q || "untitled";
-    list.push({
-      id: "new-code",
-      label: q ? `New snippet “${q}”` : "New snippet",
-      hint: "code",
-      icon: <CodeIcon size={16} />,
-      run: async () => {
-        await createItem("code", title);
+    const list: Cmd[] = [
+      {
+        id: "new-code",
+        label: q ? `New snippet “${q}”` : "New snippet",
+        hint: "code",
+        icon: <PlusIcon size={15} />,
+        run: async () => void (await createItem("code", title)),
       },
-    });
-    list.push({
-      id: "new-draw",
-      label: q ? `New drawing “${q}”` : "New drawing",
-      hint: "draw",
-      icon: <DrawIcon size={16} />,
-      run: async () => {
-        await createItem("draw", title);
+      {
+        id: "new-draw",
+        label: q ? `New drawing “${q}”` : "New drawing",
+        hint: "draw",
+        icon: <DrawIcon size={15} />,
+        run: async () => void (await createItem("draw", title)),
       },
-    });
-
-    const matches = items.filter((it) => it.title.toLowerCase().includes(q.toLowerCase()));
-    for (const it of matches.slice(0, 8)) {
+    ];
+    for (const it of items.filter((i) => i.title.toLowerCase().includes(q.toLowerCase())).slice(0, 8)) {
       list.push({
         id: `open-${it.id}`,
         label: it.title,
-        hint: it.folder || it.type,
-        icon: it.type === "draw" ? <DrawIcon size={16} /> : <CodeIcon size={16} />,
+        hint: it.folder || undefined,
+        icon: it.type === "draw" ? <DrawIcon size={15} /> : <FileBadge itemType="code" language={it.language} />,
         run: () => setActive(it.id),
       });
     }
-
     if (!q) {
       list.push({
         id: "theme",
         label: theme === "dark" ? "Switch to light" : "Switch to dark",
-        icon: theme === "dark" ? <SunIcon size={16} /> : <MoonIcon size={16} />,
+        icon: theme === "dark" ? <SunIcon size={15} /> : <MoonIcon size={15} />,
         run: () => toggleTheme(),
       });
     }
     return list;
   }, [query, items, theme, createItem, setActive, toggleTheme]);
 
-  useEffect(() => {
-    setSel((s) => Math.min(s, Math.max(0, commands.length - 1)));
-  }, [commands.length]);
+  useEffect(() => setSel((s) => Math.min(s, Math.max(0, commands.length - 1))), [commands.length]);
 
   if (!paletteOpen) return null;
 
@@ -83,7 +74,6 @@ export function CommandPalette() {
     setPalette(false);
     await cmd.run();
   }
-
   function onKey(e: React.KeyboardEvent) {
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -101,45 +91,36 @@ export function CommandPalette() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-[14vh]"
-      style={{ background: "color-mix(in srgb, var(--paper) 55%, transparent)" }}
+      className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-[16vh]"
+      style={{ background: "rgba(0,0,0,0.32)" }}
       onClick={() => setPalette(false)}
     >
       <div
-        className="pop-in w-full max-w-xl overflow-hidden rounded-[16px] border border-[var(--edge)] shadow-2xl"
-        style={{ background: "var(--panel)", backdropFilter: "blur(24px)" }}
+        className="pop-in w-full max-w-lg overflow-hidden rounded-[10px] border border-[var(--line)] bg-[var(--raised)] shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-3 border-b border-[var(--edge-soft)] px-4">
-          <span className="mono text-lg text-[var(--accent)]">›</span>
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={onKey}
-            placeholder="Search or create…"
-            className="mono w-full bg-transparent py-4 text-[15px] text-[var(--ink)] outline-none placeholder:text-[var(--ink-faint)]"
-          />
-        </div>
-        <ul className="max-h-[52vh] overflow-y-auto p-2">
+        <input
+          ref={inputRef}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={onKey}
+          placeholder="Search or create…"
+          className="w-full border-b border-[var(--line)] bg-transparent px-4 py-3.5 text-[14px] text-[var(--ink)] outline-none placeholder:text-[var(--ink-faint)]"
+        />
+        <ul className="max-h-[52vh] overflow-y-auto p-1.5">
           {commands.map((cmd, i) => (
             <li key={cmd.id}>
               <button
                 onMouseEnter={() => setSel(i)}
                 onClick={() => exec(cmd)}
-                className={`flex w-full items-center gap-3 rounded-[10px] px-3 py-2.5 text-left text-sm transition ${
-                  i === sel ? "text-[var(--ink)]" : "text-[var(--ink-soft)]"
+                className={`flex w-full items-center gap-2.5 rounded-[6px] px-2.5 py-2 text-left text-[13px] ${
+                  i === sel ? "bg-[var(--hover)] text-[var(--ink)]" : "text-[var(--ink-soft)]"
                 }`}
-                style={i === sel ? { background: "var(--accent-soft)" } : undefined}
               >
-                <span className="text-[var(--ink-soft)]">
-                  {cmd.id.startsWith("new") ? <PlusIcon size={16} /> : cmd.icon}
-                </span>
+                <span className="flex w-5 justify-center text-[var(--ink-soft)]">{cmd.icon}</span>
                 <span className="flex-1 truncate">{cmd.label}</span>
                 {cmd.hint && (
-                  <span className="mono text-[10px] uppercase tracking-wider text-[var(--ink-faint)]">
-                    {cmd.hint}
-                  </span>
+                  <span className="text-[11px] uppercase tracking-wide text-[var(--ink-faint)]">{cmd.hint}</span>
                 )}
               </button>
             </li>

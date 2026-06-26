@@ -13,13 +13,13 @@ function ago(unix: number): string {
 
 const COLOR: Record<SyncStatus["state"], string> = {
   off: "var(--ink-faint)",
-  idle: "var(--ink-soft)",
+  idle: "#3aa76d",
   syncing: "var(--accent)",
   conflict: "var(--danger)",
   error: "var(--danger)",
 };
 
-// Compact sync indicator + "sync now" button. Hidden entirely when sync is off.
+// Compact sync indicator + "sync now" in the sidebar footer. Hidden when off.
 export function SyncPill() {
   const [status, setStatus] = useState<SyncStatus | null>(null);
   const [busy, setBusy] = useState(false);
@@ -36,7 +36,7 @@ export function SyncPill() {
     try {
       const next = await api.sync();
       setStatus(next);
-      await refresh(); // pulled changes may have added items
+      await refresh();
     } finally {
       setBusy(false);
     }
@@ -56,13 +56,10 @@ export function SyncPill() {
       onClick={syncNow}
       disabled={busy}
       title={status.message || "Sync now"}
-      className="mono flex items-center gap-1.5 rounded-md border border-[var(--edge-soft)] px-2 py-1 text-[11px] transition hover:border-[var(--edge)] disabled:opacity-60"
+      className="flex items-center gap-1.5 rounded-[var(--radius)] px-1.5 py-1 text-[11px] text-[var(--ink-soft)] transition hover:bg-[var(--hover)] disabled:opacity-60"
     >
-      <span
-        className="inline-block h-1.5 w-1.5 rounded-full"
-        style={{ background: COLOR[status.state], animation: busy ? "caret-blink 1s steps(1) infinite" : undefined }}
-      />
-      <span style={{ color: "var(--ink-soft)" }}>{label}</span>
+      <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: COLOR[status.state] }} />
+      {label}
     </button>
   );
 }
