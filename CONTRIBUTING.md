@@ -3,6 +3,10 @@
 Thanks for your interest in Scratchpad! It's a small, focused project — issues
 and PRs are welcome.
 
+By participating, you agree to abide by our
+[Code of Conduct](CODE_OF_CONDUCT.md). For security issues, see
+[SECURITY.md](SECURITY.md) — please don't open public issues for vulnerabilities.
+
 ## Project layout
 
 ```

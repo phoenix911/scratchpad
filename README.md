@@ -92,11 +92,14 @@ sample systemd unit and the full walkthrough are in
 - [Architecture](docs/architecture.md) · [Data model](docs/data-model.md) · [HTTP API](docs/api.md)
 - [Item types](docs/item-types.md)
 
-## Tech
+## Contributing
 
-Go (`net/http` + chi, pure-Go SQLite, shells out to `git` for sync) embedding a
-Vite + React + TypeScript app. See [CONTRIBUTING.md](CONTRIBUTING.md) for the dev
-setup.
+Issues and PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for the dev
+setup, [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and
+[SECURITY.md](SECURITY.md) for reporting vulnerabilities.
+
+Tech: Go (`net/http` + chi, pure-Go SQLite, shells out to `git` for sync)
+embedding a Vite + React + TypeScript app.
 
 ## License
 
