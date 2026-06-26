@@ -74,23 +74,25 @@ All settings come from environment variables (or a `.env` file; real env vars wi
 | `DATA_DIR` | `./data` | Where item files live (the git working tree) |
 | `DB_PATH` | `./scratchpad.db` | SQLite index (rebuildable) |
 
-See [docs/configuration.md](docs/configuration.md) for details.
+See the [configuration docs](https://phoenix911.github.io/scratchpad/docs/configuration/) for details.
 
 ## Self-hosting
 
 Run the binary directly behind any reverse proxy or tunnel — Caddy, nginx,
 Cloudflare Tunnel or Tailscale — so your share links work from anywhere. A
-sample systemd unit and the full walkthrough are in
-[docs/deployment.md](docs/deployment.md).
+sample systemd unit and the full walkthrough are in the
+[deployment guide](https://phoenix911.github.io/scratchpad/docs/deployment/).
 
 ## Documentation
 
-- [Getting started](docs/getting-started.md)
-- [Configuration](docs/configuration.md)
-- [Deployment](docs/deployment.md)
-- [Git sync](docs/git-sync.md)
-- [Architecture](docs/architecture.md) · [Data model](docs/data-model.md) · [HTTP API](docs/api.md)
-- [Item types](docs/item-types.md)
+📖 **Full docs: <https://phoenix911.github.io/scratchpad/docs/>**
+
+- [Getting started](https://phoenix911.github.io/scratchpad/docs/getting-started/)
+- [Configuration](https://phoenix911.github.io/scratchpad/docs/configuration/)
+- [Deployment](https://phoenix911.github.io/scratchpad/docs/deployment/)
+- [Git sync](https://phoenix911.github.io/scratchpad/docs/git-sync/)
+- [Architecture](https://phoenix911.github.io/scratchpad/docs/architecture/) · [Data model](https://phoenix911.github.io/scratchpad/docs/data-model/) · [HTTP API](https://phoenix911.github.io/scratchpad/docs/api/)
+- [Item types](https://phoenix911.github.io/scratchpad/docs/item-types/)
 
 ## Contributing
 
