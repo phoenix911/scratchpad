@@ -12,6 +12,7 @@ import (
 // memory; nothing is written back to disk.
 type Config struct {
 	Port          string
+	Bind          string // host/IP to bind (e.g. 127.0.0.1); empty = all interfaces
 	ShareBaseURL  string
 	Password      string // plaintext from env; hashed in memory by the auth layer
 	GitURL        string
@@ -39,6 +40,7 @@ func Load(envPath string) Config {
 
 	return Config{
 		Port:         get("port", "8080"),
+		Bind:         get("bind", ""),
 		ShareBaseURL: strings.TrimRight(get("share_base_url", ""), "/"),
 		// Accept the new SCRATCHPAD_PASSWORD; fall back to SLATE_PASSWORD for
 		// existing setups.

@@ -26,3 +26,6 @@ app.db-*
 
 # local screenshots
 /web/.shots/
+
+# cross-compile output + staged box env (has secrets)
+/dist/
