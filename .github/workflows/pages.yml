@@ -1,11 +1,13 @@
 name: pages
 
-# Deploy the static landing site (site/) to GitHub Pages.
+# Build + deploy to GitHub Pages:
+#   /        → the static landing page (site/)
+#   /docs/   → the docs site (mkdocs-material, built from docs/*.md)
 # One-time setup: repo Settings → Pages → Source = "GitHub Actions".
 on:
   push:
     branches: [main]
-    paths: ["site/**", ".github/workflows/pages.yml"]
+    paths: ["site/**", "docs/**", "mkdocs.yml", ".github/workflows/pages.yml"]
   workflow_dispatch: {}
 
 permissions:
@@ -13,7 +15,6 @@ permissions:
   pages: write
   id-token: write
 
-# Allow one concurrent deploy.
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -26,9 +27,22 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Build docs (mkdocs-material)
+        run: |
+          pip install mkdocs-material
+          mkdocs build --strict --site-dir _site/docs
+
+      - name: Add the landing page at the root
+        run: cp -r site/* _site/
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
