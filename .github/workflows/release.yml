@@ -35,6 +35,20 @@ jobs:
           GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" \
             -o scratchpad-linux-amd64 ./cmd/scratchpad
 
+      - name: Smoke test (boot binary, assert SPA + health serve)
+        run: |
+          go build -o scratchpad-smoke ./cmd/scratchpad
+          SCRATCHPAD_ENV=/dev/null SCRATCHPAD_PASSWORD= PORT=8099 \
+            DATA_DIR="$(mktemp -d)" DB_PATH="$(mktemp -u)" ./scratchpad-smoke &
+          PID=$!
+          trap 'kill $PID 2>/dev/null || true' EXIT
+          for i in $(seq 1 20); do curl -fsS -o /dev/null http://127.0.0.1:8099/healthz && break || sleep 0.5; done
+          set -e
+          JS=$(curl -fsS http://127.0.0.1:8099/ | grep -oE 'assets/index-[^"]+\.js' | head -1)
+          echo "bundle: $JS"; test -n "$JS"
+          code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8099/$JS")
+          echo "bundle status: $code"; test "$code" = "200"
+
       - name: Publish release
         uses: softprops/action-gh-release@v3
         with:
