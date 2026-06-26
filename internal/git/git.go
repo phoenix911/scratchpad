@@ -32,9 +32,11 @@ type Status struct {
 
 // Syncer owns git operations for the data dir. All git work is serialized by mu.
 type Syncer struct {
-	dir     string
-	url     string
-	enabled bool
+	dir         string
+	url         string
+	authorName  string
+	authorEmail string
+	enabled     bool
 
 	mu       sync.Mutex
 	state    string
@@ -48,7 +50,13 @@ type Syncer struct {
 // New builds a Syncer from config. If sync isn't configured, or `git` isn't on
 // PATH, it returns a disabled no-op syncer (every method is safe to call).
 func New(cfg appcfg.Config) (*Syncer, error) {
-	s := &Syncer{dir: cfg.DataDir, url: cfg.GitURL, state: "off"}
+	s := &Syncer{
+		dir:         cfg.DataDir,
+		url:         cfg.GitURL,
+		authorName:  cfg.GitAuthorName,
+		authorEmail: cfg.GitAuthorEmail,
+		state:       "off",
+	}
 	if !cfg.SyncEnabled() {
 		return s, nil
 	}
@@ -138,10 +146,18 @@ func (s *Syncer) ensureRemote() error {
 // configureIdentity sets a local commit identity so commits succeed even with no
 // global ~/.gitconfig on the deploy box.
 func (s *Syncer) configureIdentity() error {
-	if _, err := s.git("config", "user.name", "scratchpad"); err != nil {
+	name := s.authorName
+	if name == "" {
+		name = "scratchpad"
+	}
+	email := s.authorEmail
+	if email == "" {
+		email = "scratchpad@local"
+	}
+	if _, err := s.git("config", "user.name", name); err != nil {
 		return err
 	}
-	_, err := s.git("config", "user.email", "scratchpad@local")
+	_, err := s.git("config", "user.email", email)
 	return err
 }
 

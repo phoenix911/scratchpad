@@ -18,6 +18,8 @@ type Config struct {
 	GitURL        string
 	GitUser       string
 	GitPAT        string
+	GitAuthorName  string // identity for data-repo commits
+	GitAuthorEmail string
 	DataDir       string
 	DBPath        string
 	AppName       string
@@ -45,9 +47,11 @@ func Load(envPath string) Config {
 		// Accept the new SCRATCHPAD_PASSWORD; fall back to SLATE_PASSWORD for
 		// existing setups.
 		Password: firstNonEmpty(get("scratchpad_password", ""), get("slate_password", "")),
-		GitURL:       get("git_url", ""),
-		GitUser:      get("git_user", ""),
-		GitPAT:       get("git_pat", ""),
+		GitURL:         get("git_url", ""),
+		GitUser:        get("git_user", ""),
+		GitPAT:         get("git_pat", ""),
+		GitAuthorName:  get("git_author_name", "scratchpad"),
+		GitAuthorEmail: get("git_author_email", "scratchpad@local"),
 		DataDir:      get("data_dir", "./data"),
 		DBPath:       get("db_path", "./scratchpad.db"),
 		AppName:      get("app_name", "Scratchpad"),
