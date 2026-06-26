@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import { useStore } from "./store";
-import { Login } from "./components/Login";
-import { AppShell } from "./components/AppShell";
-import { ShareView } from "./components/ShareView";
-import { setDateFavicon } from "./lib/favicon";
+import { useStore } from "@/store";
+import { Login } from "@/components/ui/Login";
+import { AppShell } from "@/components/layout/AppShell";
+import { ShareView } from "@/components/layout/ShareView";
+import { setDateFavicon } from "@/lib/favicon";
 
 // Public share route — rendered without auth or app bootstrap.
 const shareMatch = window.location.pathname.match(/^\/s\/([A-Za-z0-9]+)\/?$/);

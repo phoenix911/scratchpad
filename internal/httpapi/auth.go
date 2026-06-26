@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"scratchpad/internal/config"
-	"scratchpad/internal/store"
+	"github.com/phoenix911/scratchpad/internal/config"
+	"github.com/phoenix911/scratchpad/internal/store"
 )
 
 const (

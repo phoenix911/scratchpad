@@ -1,0 +1,8 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="32" height="32" rx="7" fill="#2383e2"/>
+  <g stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- pencil / scratch mark -->
+    <path d="M9 22.5 L19.5 12 a2 2 0 0 1 3 3 L12 25.5 L8 26.5 Z"/>
+    <path d="M17.5 13.5 L21 17"/>
+  </g>
+</svg>

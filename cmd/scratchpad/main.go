@@ -13,12 +13,12 @@ import (
 	"syscall"
 	"time"
 
-	"scratchpad/internal/config"
-	"scratchpad/internal/git"
-	"scratchpad/internal/httpapi"
-	"scratchpad/internal/items"
-	"scratchpad/internal/store"
-	"scratchpad/web"
+	"github.com/phoenix911/scratchpad/internal/config"
+	"github.com/phoenix911/scratchpad/internal/git"
+	"github.com/phoenix911/scratchpad/internal/httpapi"
+	"github.com/phoenix911/scratchpad/internal/items"
+	"github.com/phoenix911/scratchpad/internal/store"
+	"github.com/phoenix911/scratchpad/web"
 )
 
 func main() {
@@ -78,14 +78,12 @@ func main() {
 	log.Println("bye")
 }
 
-// resolveEnvPath picks the config file: SCRATCHPAD_ENV, else .env, else
-// what_i_need (so the app runs straight from bootstrap values during setup).
+// resolveEnvPath picks the config file: $SCRATCHPAD_ENV if set, else ./.env.
+// Real environment variables always override file values, so the file is
+// optional (e.g. when everything is passed via systemd/EnvironmentFile).
 func resolveEnvPath() string {
 	if p := os.Getenv("SCRATCHPAD_ENV"); p != "" {
 		return p
 	}
-	if _, err := os.Stat(".env"); err == nil {
-		return ".env"
-	}
-	return "what_i_need"
+	return ".env"
 }

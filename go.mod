@@ -1,4 +1,4 @@
-module scratchpad
+module github.com/phoenix911/scratchpad
 
 go 1.25.0
 

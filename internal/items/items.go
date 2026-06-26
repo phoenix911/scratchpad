@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"scratchpad/internal/store"
+	"github.com/phoenix911/scratchpad/internal/store"
 )
 
 // wikiLinkRe matches [[Title]] references used for backlinks.

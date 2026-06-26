@@ -43,28 +43,17 @@ func Load(envPath string) Config {
 	return Config{
 		Port:         get("port", "8080"),
 		Bind:         get("bind", ""),
-		ShareBaseURL: strings.TrimRight(get("share_base_url", ""), "/"),
-		// Accept the new SCRATCHPAD_PASSWORD; fall back to SLATE_PASSWORD for
-		// existing setups.
-		Password: firstNonEmpty(get("scratchpad_password", ""), get("slate_password", "")),
+		ShareBaseURL:   strings.TrimRight(get("share_base_url", ""), "/"),
+		Password:       get("scratchpad_password", ""),
 		GitURL:         get("git_url", ""),
 		GitUser:        get("git_user", ""),
 		GitPAT:         get("git_pat", ""),
 		GitAuthorName:  get("git_author_name", "scratchpad"),
 		GitAuthorEmail: get("git_author_email", "scratchpad@local"),
-		DataDir:      get("data_dir", "./data"),
-		DBPath:       get("db_path", "./scratchpad.db"),
-		AppName:      get("app_name", "Scratchpad"),
+		DataDir:        get("data_dir", "./data"),
+		DBPath:         get("db_path", "./scratchpad.db"),
+		AppName:        get("app_name", "Scratchpad"),
 	}
-}
-
-func firstNonEmpty(vals ...string) string {
-	for _, v := range vals {
-		if v != "" {
-			return v
-		}
-	}
-	return ""
 }
 
 // SyncEnabled reports whether git sync is configured. SSH URLs (git@host:...)

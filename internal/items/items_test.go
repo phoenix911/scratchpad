@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"scratchpad/internal/store"
+	"github.com/phoenix911/scratchpad/internal/store"
 )
 
 func newSvc(t *testing.T) (*Service, string) {

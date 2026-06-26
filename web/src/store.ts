@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { api, type Item, type ItemType } from "./lib/api";
+import { api, type Item, type ItemType } from "@/lib/api";
 
 type Theme = "dark" | "light";
 type AuthState = "loading" | "in" | "out";

@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"scratchpad/internal/items"
-	"scratchpad/internal/store"
+	"github.com/phoenix911/scratchpad/internal/items"
+	"github.com/phoenix911/scratchpad/internal/store"
 )
 
 func (s *Server) handleListItems(w http.ResponseWriter, _ *http.Request) {

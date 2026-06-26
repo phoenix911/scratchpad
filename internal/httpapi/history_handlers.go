@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"scratchpad/internal/git"
-	"scratchpad/internal/items"
+	"github.com/phoenix911/scratchpad/internal/git"
+	"github.com/phoenix911/scratchpad/internal/items"
 )
 
 // handleHistory lists the commits that touched an item's file.

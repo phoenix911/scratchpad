@@ -1,0 +1,29 @@
+name: Bug report
+description: Something isn't working as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: A clear description of the bug, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. …
+        2. …
+        3. …
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Release tag or commit, and how you run it (binary / source).
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      placeholder: OS, browser, relevant env vars (no secrets).

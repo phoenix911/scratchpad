@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scratchpad — a self-hosted workspace for code, diagrams & notes</title>
+    <meta
+      name="description"
+      content="A self-hosted, single-binary workspace for code, drawings, mindmaps, docs and boards — synced to your own git repo, with expiring share links."
+    />
+    <meta property="og:title" content="Scratchpad" />
+    <meta property="og:description" content="A self-hosted workspace for code, diagrams, mindmaps, docs and boards." />
+    <meta property="og:image" content="assets/code.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <span class="brand">scratchpad<span class="caret"></span></span>
+      <nav>
+        <a href="https://github.com/phoenix911/scratchpad">GitHub</a>
+        &nbsp;·&nbsp;
+        <a href="https://github.com/phoenix911/scratchpad/tree/main/docs">Docs</a>
+      </nav>
+    </header>
+
+    <main class="wrap">
+      <div class="hero">
+        <h1>Your own little workspace for<br />code, diagrams &amp; notes.</h1>
+        <p>
+          One small Go binary you run on your own server. Code snippets, drawings,
+          mindmaps, rich-text docs and kanban boards — all stored as plain files,
+          synced to a private git repo, and shareable with expiring view-only links.
+        </p>
+        <div class="cta">
+          <a class="btn" href="https://github.com/phoenix911/scratchpad/releases">Get the binary</a>
+          <a class="btn ghost" href="https://github.com/phoenix911/scratchpad">View on GitHub</a>
+        </div>
+        <img class="shot" src="assets/code.png" alt="Scratchpad code editor" />
+      </div>
+
+      <section>
+        <h2>Everything in one place</h2>
+        <div class="grid">
+          <div class="card"><h3>Five editors</h3><p>Code (CodeMirror), drawings (Excalidraw), mindmaps (Mind Elixir), docs (Tiptap) and kanban boards.</p></div>
+          <div class="card"><h3>Files + git</h3><p>Your data is real files synced to a private repo over SSH or HTTPS. Easy backup and recovery.</p></div>
+          <div class="card"><h3>Share links</h3><p>View-only links with optional expiry and auto-generated preview images.</p></div>
+          <div class="card"><h3>Version history</h3><p>Every item is git-tracked — browse and restore any past version.</p></div>
+          <div class="card"><h3>Backlinks</h3><p>Connect items with <code>[[wiki-links]]</code> and a linked-from panel.</p></div>
+          <div class="card"><h3>Light &amp; fast</h3><p>~20–30&nbsp;MB idle RAM, single static binary, instant boot. No Docker, no DB server.</p></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>A workspace, not five apps</h2>
+        <div class="shots2">
+          <img src="assets/mindmap.png" alt="Mindmap" />
+          <img src="assets/kanban.png" alt="Kanban board" />
+          <img src="assets/doc.png" alt="Rich-text doc" />
+          <img src="assets/drawing.png" alt="Drawing" />
+        </div>
+      </section>
+
+      <section>
+        <h2>Self-host in a minute</h2>
+        <pre><code>git clone https://github.com/phoenix911/scratchpad
+cd scratchpad
+make all          # build the SPA, embed it, produce ./scratchpad
+./scratchpad      # http://localhost:8080</code></pre>
+        <p style="color: var(--soft)">
+          Then put it behind Caddy, nginx, a Cloudflare Tunnel or Tailscale and set
+          a password. See the
+          <a href="https://github.com/phoenix911/scratchpad/tree/main/docs">docs</a>.
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        Open source under the
+        <a href="https://github.com/phoenix911/scratchpad/blob/main/LICENSE">MIT license</a>.
+        ·
+        <a href="https://github.com/phoenix911/scratchpad">github.com/phoenix911/scratchpad</a>
+      </div>
+    </footer>
+  </body>
+</html>

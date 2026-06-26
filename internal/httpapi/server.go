@@ -9,10 +9,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"scratchpad/internal/config"
-	"scratchpad/internal/git"
-	"scratchpad/internal/items"
-	"scratchpad/internal/store"
+	"github.com/phoenix911/scratchpad/internal/config"
+	"github.com/phoenix911/scratchpad/internal/git"
+	"github.com/phoenix911/scratchpad/internal/items"
+	"github.com/phoenix911/scratchpad/internal/store"
 )
 
 // Server holds the dependencies shared by all HTTP handlers.

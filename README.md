@@ -1,86 +1,103 @@
-# Scratchpad
+<h1 align="center">Scratchpad</h1>
 
-A personal, self-hosted workspace to write/save code snippets, draw Excalidraw
-diagrams, organize them in folders, sync to a private git repo, and share
-expiring view-only links. Single Go binary (embeds the React SPA), light on RAM,
-designed to look gorgeous.
+<p align="center">
+  A self-hosted workspace for code, diagrams, mindmaps, docs and boards —
+  one small Go binary, light on RAM, synced to your own git repo.
+</p>
 
-## Stack
-- **Backend:** Go — `net/http` + chi, pure-Go SQLite (`modernc.org/sqlite`),
-  go-git for sync. Embeds the SPA via `embed.FS`.
-- **Frontend:** Vite + React + TypeScript, Tailwind, CodeMirror 6 (code),
-  Excalidraw (diagrams).
+<p align="center">
+  <a href="https://github.com/phoenix911/scratchpad/actions/workflows/build.yml"><img src="https://github.com/phoenix911/scratchpad/actions/workflows/build.yml/badge.svg" alt="build"></a>
+  <a href="https://github.com/phoenix911/scratchpad/releases"><img src="https://img.shields.io/github/v/release/phoenix911/scratchpad?sort=semver" alt="release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="license"></a>
+</p>
 
-## Configure
-Copy `.env.example` to `.env` and fill it in (or set real env vars, which win):
+<p align="center"><img src="docs/assets/code.png" alt="Scratchpad" width="900"></p>
 
-```dotenv
-PORT=8080
-SHARE_BASE_URL=https://scratchpad.example.com   # tunnel host, for share links
-SLATE_PASSWORD=...                               # single-password gate
-GIT_URL=git@github.com:you/scratchpad-data.git   # SSH = no PAT needed
-GIT_USER=you
-DATA_DIR=./data
-DB_PATH=./scratchpad.db
-APP_NAME=Scratchpad
-```
+Scratchpad is a personal, single-user workspace you run on your own server. It's
+a single Go binary that embeds a React app — no database server, no cloud, no
+Docker required. Everything you create is a plain file on disk, synced to a
+private git repository you control, and shareable via expiring view-only links.
 
-Git sync uses **SSH** when `GIT_URL` is an `git@`/`ssh://` URL — the deploy
-machine's SSH key (agent or `~/.ssh/id_*`) authenticates; no token stored. Leave
-`GIT_URL` blank to run local-only.
+## Features
 
-## Build & run
+- **Five editors, one app** — code snippets (CodeMirror), drawings (Excalidraw),
+  mindmaps (Mind Elixir), rich-text docs (Tiptap) and kanban boards.
+- **Files on disk, synced to git** — your data is a folder of real files pushed
+  to your own private repo over SSH or HTTPS. Easy backup, easy recovery.
+- **View-only share links** — share any item read-only, with optional expiry
+  (1–30 days or never), plus auto-generated link-preview images.
+- **Version history** — every item is git-tracked, so you can browse and restore
+  any past version.
+- **Backlinks** — `[[wiki-links]]` between items with a "linked from / links to"
+  panel.
+- **Paste images** into docs; they're stored alongside your data and served in
+  shares.
+- **Fast & light** — ~20–30 MB idle RAM, single static binary, instant boot.
+- **Looks good** — clean monospace UI, light/dark following your system, a
+  ⌘K command palette.
+
+<p align="center">
+  <img src="docs/assets/mindmap.png" width="430">
+  <img src="docs/assets/kanban.png" width="430"><br>
+  <img src="docs/assets/doc.png" width="430">
+  <img src="docs/assets/drawing.png" width="430">
+</p>
+
+## Quick start
+
+Grab a binary from [Releases](https://github.com/phoenix911/scratchpad/releases),
+or build from source:
+
 ```bash
-make all     # build SPA -> embed -> single binary
-./scratchpad # serves on $PORT
-
-make dev     # frontend dev server with API proxy (fast iteration)
-make cross   # cross-compile linux/arm64 for a NAS
+git clone https://github.com/phoenix911/scratchpad
+cd scratchpad
+make all          # builds the SPA, embeds it, produces ./scratchpad
+./scratchpad      # serves on http://localhost:8080
 ```
 
-## Deploy (NAS, direct — no Docker)
+That's it — open http://localhost:8080. With no `SCRATCHPAD_PASSWORD` set it runs
+open (local only). To configure it, copy `.env.example` to `.env` and edit.
 
-1. **Cross-compile** for the NAS arch on your dev machine:
-   ```bash
-   make cross           # → scratchpad-linux-arm64 (override GOOS/GOARCH if needed)
-   ```
-2. **Copy** the binary + a `.env` to the NAS (e.g. `/opt/scratchpad/`). Make sure
-   `git` is installed and the box's SSH key has push access to the data repo:
-   ```bash
-   ssh nas 'git -C /tmp ls-remote git@github.com:you/scratchpad-data.git'  # should list refs
-   ```
-3. **Run it** under systemd (`/etc/systemd/system/scratchpad.service`):
-   ```ini
-   [Unit]
-   Description=Scratchpad
-   After=network-online.target
+## Configuration
 
-   [Service]
-   WorkingDirectory=/opt/scratchpad
-   EnvironmentFile=/opt/scratchpad/.env
-   ExecStart=/opt/scratchpad/scratchpad-linux-arm64
-   Restart=always
-   User=youruser
+All settings come from environment variables (or a `.env` file; real env vars win).
 
-   [Install]
-   WantedBy=multi-user.target
-   ```
-   ```bash
-   sudo systemctl enable --now scratchpad
-   ```
-4. **Expose it** with a Cloudflare Tunnel so share links work from anywhere:
-   ```bash
-   cloudflared tunnel --url http://localhost:8080
-   # or a named tunnel mapping scratchpad-suh.z6o.cc → localhost:8080
-   ```
-   Set `SHARE_BASE_URL` to that public host so share links and OG previews use it.
-   (Tailscale Funnel works too — point it at the same port.)
+| Variable | Default | Description |
+|---|---|---|
+| `PORT` | `8080` | Port to listen on |
+| `BIND` | all | Bind address (set `127.0.0.1` behind a proxy) |
+| `SCRATCHPAD_PASSWORD` | — | Single-password gate; blank = no auth |
+| `SHARE_BASE_URL` | — | Public URL, used to build share links |
+| `GIT_URL` | — | Data repo to sync to (`git@…` or `https://…`); blank = local only |
+| `GIT_USER` / `GIT_PAT` | — | For HTTPS git sync |
+| `GIT_AUTHOR_NAME` / `GIT_AUTHOR_EMAIL` | `scratchpad` | Commit identity for the data repo |
+| `DATA_DIR` | `./data` | Where item files live (the git working tree) |
+| `DB_PATH` | `./scratchpad.db` | SQLite index (rebuildable) |
 
-## Notes
-- The app trusts `X-Forwarded-Proto: https` from the tunnel to set Secure cookies.
-- `data/` is its own git repo (the content); this source repo is separate.
-- Share links are SSR'd with Open Graph tags + an auto-generated funny SFW preview
-  image, so they unfurl nicely in chat apps.
+See [docs/configuration.md](docs/configuration.md) for details.
 
-## Status
-See `plan/TASKLIST.md`.
+## Self-hosting
+
+Run the binary directly behind any reverse proxy or tunnel — Caddy, nginx,
+Cloudflare Tunnel or Tailscale — so your share links work from anywhere. A
+sample systemd unit and the full walkthrough are in
+[docs/deployment.md](docs/deployment.md).
+
+## Documentation
+
+- [Getting started](docs/getting-started.md)
+- [Configuration](docs/configuration.md)
+- [Deployment](docs/deployment.md)
+- [Git sync](docs/git-sync.md)
+- [Architecture](docs/architecture.md) · [Data model](docs/data-model.md) · [HTTP API](docs/api.md)
+- [Item types](docs/item-types.md)
+
+## Tech
+
+Go (`net/http` + chi, pure-Go SQLite, shells out to `git` for sync) embedding a
+Vite + React + TypeScript app. See [CONTRIBUTING.md](CONTRIBUTING.md) for the dev
+setup.
+
+## License
+
+[MIT](LICENSE).

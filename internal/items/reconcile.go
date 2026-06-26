@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"scratchpad/internal/store"
+	"github.com/phoenix911/scratchpad/internal/store"
 )
 
 // Reconcile walks <dataDir>/items and makes the index match what's on disk.

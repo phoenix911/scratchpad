@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	appcfg "scratchpad/internal/config"
+	appcfg "github.com/phoenix911/scratchpad/internal/config"
 )
 
 const (

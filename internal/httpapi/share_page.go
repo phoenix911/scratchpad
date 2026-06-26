@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"scratchpad/internal/og"
+	"github.com/phoenix911/scratchpad/internal/og"
 )
 
 // handleSharePage serves the SPA's index.html for /s/:token with Open Graph
