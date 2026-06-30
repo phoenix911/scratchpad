@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"encoding/base32"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -269,12 +270,63 @@ func (s *Service) move(id string, archived, trashed bool) (store.Item, error) {
 		if err := os.Rename(s.abs(oldPath), s.abs(it.Path)); err != nil && !os.IsNotExist(err) {
 			return store.Item{}, err
 		}
+		// Don't leave an empty source folder behind (e.g. after archiving the
+		// last item in a folder) — it would still show in the sidebar tree.
+		s.pruneEmptyParents(oldPath)
 	}
 	if err := s.st.UpsertItem(it); err != nil {
 		return store.Item{}, err
 	}
 	s.changed()
 	return it, nil
+}
+
+// pruneEmptyParents removes now-empty ancestor directories of a moved file, up
+// to (but not including) the items/archive/trash root. os.Remove only deletes
+// truly-empty dirs, so folders kept alive by a .gitkeep are preserved.
+func (s *Service) pruneEmptyParents(rel string) {
+	dir := filepath.Dir(rel)
+	for {
+		base := filepath.Base(dir)
+		if dir == "." || base == itemsRoot || base == archiveRoot || base == trashRoot {
+			return
+		}
+		if err := os.Remove(s.abs(dir)); err != nil {
+			return // non-empty (or gone) — stop climbing
+		}
+		dir = filepath.Dir(dir)
+	}
+}
+
+// pruneFolderDir drops the folder's directory under any root where it no longer
+// holds item files (including a leftover .gitkeep), so an archived/trashed
+// folder disappears from the tree instead of lingering empty.
+func (s *Service) pruneFolderDir(folder string) {
+	for _, root := range []string{itemsRoot, archiveRoot, trashRoot} {
+		dir := filepath.Join(s.dataDir, root, folder)
+		if info, err := os.Stat(dir); err != nil || !info.IsDir() {
+			continue
+		}
+		if !dirHasItemFiles(dir) {
+			_ = os.RemoveAll(dir)
+		}
+	}
+}
+
+// dirHasItemFiles reports whether dir (recursively) contains any real item file.
+func dirHasItemFiles(dir string) bool {
+	found := false
+	_ = filepath.WalkDir(dir, func(_ string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return nil
+		}
+		if _, ok := idFromFilename(d.Name()); ok {
+			found = true
+			return fs.SkipAll
+		}
+		return nil
+	})
+	return found
 }
 
 // ArchiveFolder archives (archived=true) or restores (archived=false) every
@@ -325,6 +377,8 @@ func (s *Service) moveFolder(folder string, decide func(store.Item) (bool, bool,
 		}
 		n++
 	}
+	// Remove the emptied source folder dirs so the folder leaves the tree.
+	s.pruneFolderDir(clean)
 	return n, nil
 }
 

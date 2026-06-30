@@ -6,11 +6,12 @@ BIN := scratchpad
 PKG := ./cmd/scratchpad
 
 # --- deploy config (override on the CLI, e.g. `make deploy DEPLOY_HOST=dell-box-lan`) ---
-DEPLOY_HOST ?= dell-box            # ssh host alias of the server
-DEPLOY_DIR  ?= /opt/scratchpad     # install dir (systemd WorkingDirectory)
-DEPLOY_USER ?= scratchpad          # service user that owns the files
-DEPLOY_SVC  ?= scratchpad          # systemd unit name
-DEPLOY_PORT ?= 6005                # local port for the health check
+# NB: no trailing inline comments on these — Make would keep the spaces in the value.
+DEPLOY_HOST ?= dell-box
+DEPLOY_DIR  ?= /opt/scratchpad
+DEPLOY_USER ?= scratchpad
+DEPLOY_SVC  ?= scratchpad
+DEPLOY_PORT ?= 6005
 AMD64_BIN   := $(BIN)-linux-amd64
 VERSION     := $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 
