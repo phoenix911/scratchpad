@@ -51,6 +51,12 @@ const (
 	kanbanExt  = "kanban"
 	cornellExt = "cornell"
 	itemsRoot  = "items"
+	// archiveRoot and trashRoot mirror itemsRoot for archived and recycle-bin
+	// items. Archiving/trashing moves a file from items/<folder>/… to
+	// archive|trash/<folder>/…; the folder structure is kept so restoring puts
+	// the file back in its original location.
+	archiveRoot = "archive"
+	trashRoot   = "trash"
 )
 
 func validType(t string) bool {
@@ -206,8 +212,28 @@ func (s *Service) Update(id string, in UpdateInput) (FullItem, error) {
 	return FullItem{Item: it, Content: string(b)}, nil
 }
 
-// Delete removes the file and index row.
+// Delete moves an item to the recycle bin (trash/) rather than removing it.
+// Use Purge to delete permanently from there.
 func (s *Service) Delete(id string) error {
+	_, err := s.move(id, false, true)
+	return err
+}
+
+// Archive moves an item to archive/ (archived=true) or back to items/
+// (archived=false), preserving its folder. Archived items are hidden from the
+// normal lists but kept on disk so the change is reversible and syncs to git.
+func (s *Service) Archive(id string, archived bool) (store.Item, error) {
+	return s.move(id, archived, false)
+}
+
+// Restore brings a trashed or archived item back to the active items/ tree.
+func (s *Service) Restore(id string) (store.Item, error) {
+	return s.move(id, false, false)
+}
+
+// Purge permanently removes an item's file and index row. Intended for items
+// already in the recycle bin.
+func (s *Service) Purge(id string) error {
 	it, err := s.st.GetItem(id)
 	if err != nil {
 		return err
@@ -220,6 +246,86 @@ func (s *Service) Delete(id string) error {
 	}
 	s.changed()
 	return nil
+}
+
+// move relocates an item between the items/, archive/ and trash/ roots to match
+// the requested state, moving its file and updating the index.
+func (s *Service) move(id string, archived, trashed bool) (store.Item, error) {
+	it, err := s.st.GetItem(id)
+	if err != nil {
+		return store.Item{}, err
+	}
+	if it.Archived == archived && it.Trashed == trashed {
+		return it, nil // already in the requested state
+	}
+	oldPath := it.Path
+	it.Archived = archived
+	it.Trashed = trashed
+	it.Path = s.relPath(it)
+	if it.Path != oldPath {
+		if err := os.MkdirAll(filepath.Dir(s.abs(it.Path)), 0o755); err != nil {
+			return store.Item{}, err
+		}
+		if err := os.Rename(s.abs(oldPath), s.abs(it.Path)); err != nil && !os.IsNotExist(err) {
+			return store.Item{}, err
+		}
+	}
+	if err := s.st.UpsertItem(it); err != nil {
+		return store.Item{}, err
+	}
+	s.changed()
+	return it, nil
+}
+
+// ArchiveFolder archives (archived=true) or restores (archived=false) every
+// active item in a folder and its subfolders. Returns the number moved.
+func (s *Service) ArchiveFolder(folder string, archived bool) (int, error) {
+	return s.moveFolder(folder, func(it store.Item) (bool, bool, bool) {
+		// Only touch active⇄archived; leave trashed items alone.
+		if it.Trashed || it.Archived == archived {
+			return false, false, false
+		}
+		return true, archived, false
+	})
+}
+
+// TrashFolder moves every active/archived item in a folder (and its subfolders)
+// to the recycle bin. Returns the number moved.
+func (s *Service) TrashFolder(folder string) (int, error) {
+	return s.moveFolder(folder, func(it store.Item) (bool, bool, bool) {
+		if it.Trashed {
+			return false, false, false
+		}
+		return true, false, true
+	})
+}
+
+// moveFolder applies decide() to every item under folder (and subfolders).
+// decide returns (move?, archived, trashed) for the matched item.
+func (s *Service) moveFolder(folder string, decide func(store.Item) (bool, bool, bool)) (int, error) {
+	clean := cleanFolder(folder)
+	if clean == "" {
+		return 0, fmt.Errorf("empty folder name")
+	}
+	list, err := s.st.ListItems()
+	if err != nil {
+		return 0, err
+	}
+	n := 0
+	for _, it := range list {
+		if it.Folder != clean && !strings.HasPrefix(it.Folder, clean+"/") {
+			continue
+		}
+		ok, archived, trashed := decide(it)
+		if !ok {
+			continue
+		}
+		if _, err := s.move(it.ID, archived, trashed); err != nil {
+			return n, err
+		}
+		n++
+	}
+	return n, nil
 }
 
 // --- helpers ---
@@ -241,10 +347,24 @@ func (s *Service) relPath(it store.Item) string {
 		ext = cornellExt
 	}
 	name := fmt.Sprintf("%s-%s.%s", slug(it.Title), it.ID, ext)
+	root := rootFor(it)
 	if it.Folder == "" {
-		return filepath.ToSlash(filepath.Join(itemsRoot, name))
+		return filepath.ToSlash(filepath.Join(root, name))
 	}
-	return filepath.ToSlash(filepath.Join(itemsRoot, it.Folder, name))
+	return filepath.ToSlash(filepath.Join(root, it.Folder, name))
+}
+
+// rootFor picks the on-disk root for an item by its state. Trashed wins over
+// archived so an item is never in two places.
+func rootFor(it store.Item) string {
+	switch {
+	case it.Trashed:
+		return trashRoot
+	case it.Archived:
+		return archiveRoot
+	default:
+		return itemsRoot
+	}
 }
 
 func (s *Service) writeFile(rel, content string) error {

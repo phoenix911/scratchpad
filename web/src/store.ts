@@ -3,6 +3,8 @@ import { api, type Item, type ItemType } from "@/lib/api";
 
 type Theme = "dark" | "light";
 type AuthState = "loading" | "in" | "out";
+// Which full-pane view is showing. "item" means an editor is open (activeId).
+export type View = "home" | "archive" | "trash" | "item";
 
 interface AppState {
   auth: AuthState;
@@ -12,6 +14,7 @@ interface AppState {
   items: Item[];
   folders: string[];
   activeId: string | null;
+  view: View;
   paletteOpen: boolean;
   sidebarCollapsed: boolean;
   reloadNonce: number; // bump to force the open editor to reload its content
@@ -21,6 +24,8 @@ interface AppState {
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
   setActive: (id: string | null) => void;
+  setView: (view: Exclude<View, "item">) => void;
+  goHome: () => void;
   setPalette: (open: boolean) => void;
   toggleTheme: () => void;
   toggleSidebar: () => void;
@@ -28,7 +33,11 @@ interface AppState {
 
   createItem: (type: ItemType, title: string, folder?: string) => Promise<Item>;
   updateMeta: (id: string, patch: Partial<Pick<Item, "title" | "folder" | "language">>) => Promise<void>;
-  deleteItem: (id: string) => Promise<void>;
+  // archive / recycle-bin transitions
+  setItemState: (id: string, state: "active" | "archived" | "trashed") => Promise<void>;
+  archiveFolder: (name: string, archived: boolean) => Promise<void>;
+  trashFolder: (name: string) => Promise<void>;
+  deleteItem: (id: string) => Promise<void>; // permanent (recycle bin)
 }
 
 function systemTheme(): Theme {
@@ -39,6 +48,13 @@ function loadTheme(): { theme: Theme; manual: boolean } {
   const saved = localStorage.getItem("scratchpad-theme");
   if (saved === "light" || saved === "dark") return { theme: saved, manual: true };
   return { theme: systemTheme(), manual: false };
+}
+
+// Restore the last full-pane view. "item" is resolved against activeId in init.
+function readView(): View {
+  const v = localStorage.getItem("scratchpad-view");
+  if (v === "home" || v === "archive" || v === "trash" || v === "item") return v;
+  return "home";
 }
 
 function applyTheme(theme: Theme) {
@@ -57,6 +73,7 @@ export const useStore = create<AppState>((set, get) => ({
   items: [],
   folders: [],
   activeId: localStorage.getItem("scratchpad-active"),
+  view: readView(),
   paletteOpen: false,
   sidebarCollapsed: localStorage.getItem("scratchpad-sidebar") === "collapsed",
   reloadNonce: 0,
@@ -75,10 +92,11 @@ export const useStore = create<AppState>((set, get) => ({
       const me = await api.me();
       set({ auth: "in", appName: me.app ?? "scratchpad" });
       await get().refresh();
-      // Restore the last open item across refreshes; fall back to the newest.
-      const { items, activeId } = get();
-      const exists = activeId && items.some((i) => i.id === activeId);
-      if (!exists) get().setActive(items.length > 0 ? items[0].id : null);
+      // Restore the last view. If an item was open, reopen it when it still
+      // exists and is active (not archived/trashed); otherwise land on home.
+      const { items, activeId, view } = get();
+      const open = activeId && items.find((i) => i.id === activeId);
+      if (view === "item" && (!open || open.archived || open.trashed)) get().goHome();
     } catch {
       set({ auth: "out" });
     }
@@ -103,8 +121,14 @@ export const useStore = create<AppState>((set, get) => ({
   setActive: (id) => {
     if (id) localStorage.setItem("scratchpad-active", id);
     else localStorage.removeItem("scratchpad-active");
-    set({ activeId: id });
+    localStorage.setItem("scratchpad-view", id ? "item" : "home");
+    set({ activeId: id, view: id ? "item" : "home" });
   },
+  setView: (view) => {
+    localStorage.setItem("scratchpad-view", view);
+    set({ view });
+  },
+  goHome: () => get().setView("home"),
   setPalette: (open) => set({ paletteOpen: open }),
   bumpReload: () => set((s) => ({ reloadNonce: s.reloadNonce + 1 })),
 
@@ -124,7 +148,7 @@ export const useStore = create<AppState>((set, get) => ({
   createItem: async (type, title, folder) => {
     const it = await api.createItem({ type, title, folder, content: "" });
     await get().refresh();
-    set({ activeId: it.id });
+    get().setActive(it.id);
     return it;
   },
 
@@ -133,10 +157,32 @@ export const useStore = create<AppState>((set, get) => ({
     await get().refresh();
   },
 
+  setItemState: async (id, state) => {
+    const wasOpen = get().activeId === id && get().view === "item";
+    await api.setItemState(id, state);
+    await get().refresh();
+    if (state === "active") {
+      get().setActive(id); // open the restored item
+    } else if (wasOpen) {
+      get().goHome(); // the open item left the active tree
+    }
+  },
+
+  archiveFolder: async (name, archived) => {
+    await api.archiveFolder(name, archived);
+    await get().refresh();
+  },
+
+  trashFolder: async (name) => {
+    await api.trashFolder(name);
+    await get().refresh();
+  },
+
   deleteItem: async (id) => {
     await api.deleteItem(id);
     const { activeId } = get();
     await get().refresh();
-    if (activeId === id) set({ activeId: null });
+    // Permanently deleting the open file drops back to the home view.
+    if (activeId === id) get().goHome();
   },
 }));

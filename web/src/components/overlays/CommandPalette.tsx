@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useStore } from "@/store";
 import { FileBadge } from "@/components/ui/FileBadge";
-import { PlusIcon, DrawIcon, MindIcon, DocIcon, KanbanIcon, CornellIcon, SunIcon, MoonIcon } from "@/components/ui/icons";
+import { PlusIcon, DrawIcon, MindIcon, DocIcon, KanbanIcon, CornellIcon, SunIcon, MoonIcon, HomeIcon, ArchiveIcon, TrashIcon } from "@/components/ui/icons";
 
 interface Cmd {
   id: string;
@@ -14,7 +14,7 @@ interface Cmd {
 // ⌘K launcher: type to filter; create a snippet/drawing from the query, jump to
 // a file, or toggle the theme. Clean card, gray hover, monospace.
 export function CommandPalette() {
-  const { paletteOpen, setPalette, items, setActive, createItem, toggleTheme, theme } = useStore();
+  const { paletteOpen, setPalette, items, setActive, goHome, setView, createItem, toggleTheme, theme } = useStore();
   const [query, setQuery] = useState("");
   const [sel, setSel] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -30,7 +30,31 @@ export function CommandPalette() {
   const commands = useMemo<Cmd[]>(() => {
     const q = query.trim();
     const title = q || "untitled";
-    const list: Cmd[] = [
+    const list: Cmd[] = [];
+    // Navigation: home, archive, recycle bin. Shown by default and when matched.
+    const ql = q.toLowerCase();
+    if (!q || "home all files".includes(ql)) {
+      list.push({ id: "home", label: "Home", hint: "all files", icon: <HomeIcon size={15} />, run: () => goHome() });
+    }
+    if (!q || "archive".includes(ql)) {
+      list.push({
+        id: "archive",
+        label: "Archive",
+        hint: "view",
+        icon: <ArchiveIcon size={15} />,
+        run: () => setView("archive"),
+      });
+    }
+    if (!q || "recycle bin trash".includes(ql)) {
+      list.push({
+        id: "trash",
+        label: "Recycle bin",
+        hint: "view",
+        icon: <TrashIcon size={15} />,
+        run: () => setView("trash"),
+      });
+    }
+    list.push(
       {
         id: "new-code",
         label: q ? `New snippet “${q}”` : "New snippet",
@@ -73,8 +97,9 @@ export function CommandPalette() {
         icon: <CornellIcon size={15} />,
         run: async () => void (await createItem("cornell", title)),
       },
-    ];
-    for (const it of items.filter((i) => i.title.toLowerCase().includes(q.toLowerCase())).slice(0, 8)) {
+    );
+    const openable = items.filter((i) => !i.archived && !i.trashed);
+    for (const it of openable.filter((i) => i.title.toLowerCase().includes(q.toLowerCase())).slice(0, 8)) {
       list.push({
         id: `open-${it.id}`,
         label: it.title,
@@ -92,7 +117,7 @@ export function CommandPalette() {
       });
     }
     return list;
-  }, [query, items, theme, createItem, setActive, toggleTheme]);
+  }, [query, items, theme, createItem, setActive, goHome, setView, toggleTheme]);
 
   useEffect(() => setSel((s) => Math.min(s, Math.max(0, commands.length - 1))), [commands.length]);
 

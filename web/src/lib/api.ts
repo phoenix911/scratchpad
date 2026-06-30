@@ -3,6 +3,8 @@
 
 export type ItemType = "code" | "draw" | "mind" | "doc" | "kanban" | "cornell";
 
+export type ItemState = "active" | "archived" | "trashed";
+
 export interface Item {
   id: string;
   title: string;
@@ -10,6 +12,8 @@ export interface Item {
   path: string;
   language: string;
   folder: string;
+  archived: boolean;
+  trashed: boolean;
   createdAt: number;
   updatedAt: number;
 }
@@ -93,6 +97,10 @@ export const api = {
     id: string,
     patch: Partial<Pick<Item, "title" | "folder" | "language">> & { content?: string },
   ) => req<FullItem>("PUT", `/api/items/${id}`, patch),
+  // archive / recycle-bin state transitions (active | archived | trashed)
+  setItemState: (id: string, state: ItemState) =>
+    req<void>("POST", `/api/items/${id}/state`, { state }),
+  // permanent delete (used from the recycle bin)
   deleteItem: (id: string) => req<void>("DELETE", `/api/items/${id}`),
 
   // sharing
@@ -136,6 +144,13 @@ export const api = {
     req<{ folder: string }>("POST", "/api/folders", { action: "rename", name, newName }),
   deleteFolder: (name: string) =>
     req<void>("POST", "/api/folders", { action: "delete", name }),
+  archiveFolder: (name: string, archived: boolean) =>
+    req<{ moved: number }>("POST", "/api/folders", {
+      action: archived ? "archive" : "unarchive",
+      name,
+    }),
+  trashFolder: (name: string) =>
+    req<{ moved: number }>("POST", "/api/folders", { action: "trash", name }),
 };
 
 export { ApiError };

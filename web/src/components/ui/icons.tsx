@@ -104,3 +104,27 @@ export const PanelIcon = ({ size = 16, className }: P) => (
     <path d="M15 4v16" />
   </svg>
 );
+export const HomeIcon = ({ size = 16, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <path d="M3 10.5 12 3l9 7.5" />
+    <path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5" />
+    <path d="M9.5 21v-6h5v6" />
+  </svg>
+);
+export const FolderIcon = ({ size = 16, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <path d="M3 6a1 1 0 0 1 1-1h5l2 2h8a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z" />
+  </svg>
+);
+export const ArchiveIcon = ({ size = 16, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <rect x="3" y="4" width="18" height="4" rx="1" />
+    <path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M9.5 12h5" />
+  </svg>
+);
+export const RestoreIcon = ({ size = 16, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <path d="M4 4v5h5" />
+    <path d="M4 9a8 8 0 1 1-1.3 5" />
+  </svg>
+);

@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	_ "modernc.org/sqlite" // pure-Go driver, registered as "sqlite"
 )
@@ -49,6 +50,8 @@ CREATE TABLE IF NOT EXISTS items (
   path        TEXT NOT NULL,            -- relative path under data/items
   language    TEXT NOT NULL DEFAULT '',
   folder      TEXT NOT NULL DEFAULT '',
+  archived    INTEGER NOT NULL DEFAULT 0,
+  trashed     INTEGER NOT NULL DEFAULT 0,
   created_at  INTEGER NOT NULL,
   updated_at  INTEGER NOT NULL
 );
@@ -75,6 +78,18 @@ CREATE TABLE IF NOT EXISTS links (
 CREATE INDEX IF NOT EXISTS idx_links_to ON links(to_title);
 CREATE INDEX IF NOT EXISTS idx_links_from ON links(from_id);
 `
-	_, err := s.db.Exec(schema)
-	return err
+	if _, err := s.db.Exec(schema); err != nil {
+		return err
+	}
+	// Upgrade older databases that predate these columns. SQLite has no
+	// "ADD COLUMN IF NOT EXISTS", so we ignore the duplicate-column error.
+	for _, col := range []string{
+		`ALTER TABLE items ADD COLUMN archived INTEGER NOT NULL DEFAULT 0`,
+		`ALTER TABLE items ADD COLUMN trashed INTEGER NOT NULL DEFAULT 0`,
+	} {
+		if _, err := s.db.Exec(col); err != nil && !strings.Contains(err.Error(), "duplicate column") {
+			return err
+		}
+	}
+	return nil
 }

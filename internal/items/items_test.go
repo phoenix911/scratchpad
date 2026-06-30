@@ -59,12 +59,67 @@ func TestCreateGetUpdateDelete(t *testing.T) {
 		t.Errorf("old file should be gone")
 	}
 
-	// Delete.
+	// Delete moves the item to the recycle bin (trash/) — still indexed, but
+	// flagged trashed and relocated on disk.
 	if err := svc.Delete(fi.ID); err != nil {
 		t.Fatalf("delete: %v", err)
 	}
+	trashed, err := svc.Get(fi.ID)
+	if err != nil {
+		t.Fatalf("get after delete: %v", err)
+	}
+	if !trashed.Trashed {
+		t.Errorf("item should be trashed after delete")
+	}
+	if _, err := os.Stat(filepath.Join(dir, "data", "trash", trashed.Folder, filepath.Base(trashed.Path))); err != nil {
+		t.Errorf("expected file in trash/: %v", err)
+	}
+
+	// Restore brings it back to the active items/ tree.
+	if _, err := svc.Restore(fi.ID); err != nil {
+		t.Fatalf("restore: %v", err)
+	}
+	if r, _ := svc.Get(fi.ID); r.Trashed {
+		t.Errorf("item should be active after restore")
+	}
+
+	// Purge permanently removes it.
+	if err := svc.Purge(fi.ID); err != nil {
+		t.Fatalf("purge: %v", err)
+	}
 	if _, err := svc.Get(fi.ID); err != ErrNotFound {
-		t.Errorf("get after delete = %v, want ErrNotFound", err)
+		t.Errorf("get after purge = %v, want ErrNotFound", err)
+	}
+}
+
+func TestArchiveAndTrashRoundTrip(t *testing.T) {
+	svc, dir := newSvc(t)
+	fi, err := svc.Create(CreateInput{Type: TypeCode, Title: "Note", Language: "text", Content: "x"})
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	// Archive → file under archive/, flagged archived.
+	if _, err := svc.Archive(fi.ID, true); err != nil {
+		t.Fatalf("archive: %v", err)
+	}
+	a, _ := svc.Get(fi.ID)
+	if !a.Archived || a.Trashed {
+		t.Errorf("archived state wrong: %+v", a)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "data", a.Path)); err != nil || filepath.Dir(a.Path) != "archive" {
+		t.Errorf("archived file path = %q (err %v)", a.Path, err)
+	}
+
+	// A fresh reconcile (new DB) must recover the archived flag from disk.
+	st2, _ := store.Open(filepath.Join(dir, "fresh.db"))
+	defer st2.Close()
+	svc2 := New(st2, filepath.Join(dir, "data"), nil)
+	if err := svc2.Reconcile(); err != nil {
+		t.Fatalf("reconcile: %v", err)
+	}
+	if r, _ := svc2.Get(fi.ID); !r.Archived {
+		t.Errorf("archived flag lost across reconcile")
 	}
 }
 

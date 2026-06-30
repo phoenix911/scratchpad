@@ -14,6 +14,8 @@ type Item struct {
 	Path      string `json:"path"`
 	Language  string `json:"language"`
 	Folder    string `json:"folder"`
+	Archived  bool   `json:"archived"`
+	Trashed   bool   `json:"trashed"`
 	CreatedAt int64  `json:"createdAt"`
 	UpdatedAt int64  `json:"updatedAt"`
 }
@@ -22,12 +24,13 @@ type Item struct {
 // disk→DB reconcile).
 func (s *Store) UpsertItem(it Item) error {
 	_, err := s.db.Exec(`
-INSERT INTO items (id, title, type, path, language, folder, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO items (id, title, type, path, language, folder, archived, trashed, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(id) DO UPDATE SET
   title=excluded.title, type=excluded.type, path=excluded.path,
-  language=excluded.language, folder=excluded.folder, updated_at=excluded.updated_at`,
-		it.ID, it.Title, it.Type, it.Path, it.Language, it.Folder, it.CreatedAt, it.UpdatedAt)
+  language=excluded.language, folder=excluded.folder, archived=excluded.archived,
+  trashed=excluded.trashed, updated_at=excluded.updated_at`,
+		it.ID, it.Title, it.Type, it.Path, it.Language, it.Folder, it.Archived, it.Trashed, it.CreatedAt, it.UpdatedAt)
 	return err
 }
 
@@ -35,9 +38,9 @@ ON CONFLICT(id) DO UPDATE SET
 func (s *Store) GetItem(id string) (Item, error) {
 	var it Item
 	err := s.db.QueryRow(`
-SELECT id, title, type, path, language, folder, created_at, updated_at
+SELECT id, title, type, path, language, folder, archived, trashed, created_at, updated_at
 FROM items WHERE id = ?`, id).Scan(
-		&it.ID, &it.Title, &it.Type, &it.Path, &it.Language, &it.Folder, &it.CreatedAt, &it.UpdatedAt)
+		&it.ID, &it.Title, &it.Type, &it.Path, &it.Language, &it.Folder, &it.Archived, &it.Trashed, &it.CreatedAt, &it.UpdatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return Item{}, ErrNotFound
 	}
@@ -47,7 +50,7 @@ FROM items WHERE id = ?`, id).Scan(
 // ListItems returns all items, newest first.
 func (s *Store) ListItems() ([]Item, error) {
 	rows, err := s.db.Query(`
-SELECT id, title, type, path, language, folder, created_at, updated_at
+SELECT id, title, type, path, language, folder, archived, trashed, created_at, updated_at
 FROM items ORDER BY updated_at DESC`)
 	if err != nil {
 		return nil, err
@@ -58,7 +61,7 @@ FROM items ORDER BY updated_at DESC`)
 	for rows.Next() {
 		var it Item
 		if err := rows.Scan(&it.ID, &it.Title, &it.Type, &it.Path, &it.Language,
-			&it.Folder, &it.CreatedAt, &it.UpdatedAt); err != nil {
+			&it.Folder, &it.Archived, &it.Trashed, &it.CreatedAt, &it.UpdatedAt); err != nil {
 			return nil, err
 		}
 		out = append(out, it)

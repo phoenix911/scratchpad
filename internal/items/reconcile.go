@@ -15,14 +15,43 @@ import (
 // another machine show up correctly. Filenames carry the id (slug-<id>.<ext>),
 // which lets reconcile preserve item ids across machines.
 func (s *Service) Reconcile() error {
-	root := filepath.Join(s.dataDir, itemsRoot)
+	seen := map[string]struct{}{}
+	// Active items live under items/, archived under archive/, recycle-bin items
+	// under trash/ — all with the same folder layout.
+	if err := s.reconcileRoot(itemsRoot, false, false, seen); err != nil {
+		return err
+	}
+	if err := s.reconcileRoot(archiveRoot, true, false, seen); err != nil {
+		return err
+	}
+	if err := s.reconcileRoot(trashRoot, false, true, seen); err != nil {
+		return err
+	}
+
+	// Prune index rows whose backing file is gone.
+	known, err := s.st.AllItemIDs()
+	if err != nil {
+		return err
+	}
+	for id := range known {
+		if _, ok := seen[id]; !ok {
+			if dErr := s.st.DeleteItem(id); dErr != nil {
+				return dErr
+			}
+		}
+	}
+	return nil
+}
+
+// reconcileRoot walks one root (items/, archive/ or trash/) and upserts what it
+// finds, marking rows with the given state. Ids found are added to seen.
+func (s *Service) reconcileRoot(rootName string, archived, trashed bool, seen map[string]struct{}) error {
+	root := filepath.Join(s.dataDir, rootName)
 	if err := os.MkdirAll(root, 0o755); err != nil {
 		return err
 	}
 
-	seen := map[string]struct{}{}
-
-	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+	return filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -43,10 +72,12 @@ func (s *Service) Reconcile() error {
 		ext := strings.TrimPrefix(filepath.Ext(base), ".")
 
 		it := store.Item{
-			ID:     id,
-			Title:  titleFromFilename(base),
-			Path:   rel,
-			Folder: folder,
+			ID:       id,
+			Title:    titleFromFilename(base),
+			Path:     rel,
+			Folder:   folder,
+			Archived: archived,
+			Trashed:  trashed,
 		}
 		switch ext {
 		case drawExt:
@@ -91,23 +122,6 @@ func (s *Service) Reconcile() error {
 		}
 		return nil
 	})
-	if err != nil {
-		return err
-	}
-
-	// Prune index rows whose backing file is gone.
-	known, err := s.st.AllItemIDs()
-	if err != nil {
-		return err
-	}
-	for id := range known {
-		if _, ok := seen[id]; !ok {
-			if dErr := s.st.DeleteItem(id); dErr != nil {
-				return dErr
-			}
-		}
-	}
-	return nil
 }
 
 // idFromFilename extracts the id from "slug-<id>.<ext>". Ids are base32 (no
@@ -138,9 +152,12 @@ func titleFromFilename(base string) string {
 	return name
 }
 
-// folderFromRel returns the folder path between items/ and the filename.
+// folderFromRel returns the folder path between the root (items/ or archive/)
+// and the filename.
 func folderFromRel(rel string) string {
 	rel = strings.TrimPrefix(rel, itemsRoot+"/")
+	rel = strings.TrimPrefix(rel, archiveRoot+"/")
+	rel = strings.TrimPrefix(rel, trashRoot+"/")
 	dir := filepath.ToSlash(filepath.Dir(rel))
 	if dir == "." {
 		return ""

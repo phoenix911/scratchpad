@@ -3,6 +3,8 @@ import { useStore } from "@/store";
 import { api, type FullItem } from "@/lib/api";
 import { useDebouncedSave, type SaveState } from "@/lib/useDebouncedSave";
 import { CodeEditor } from "@/components/editors/CodeEditor";
+import { HomeView } from "@/components/layout/HomeView";
+import { CollectionView } from "@/components/layout/CollectionView";
 
 // Excalidraw + Mind Elixir are heavy — code-split so they load only when opened.
 const DrawCanvas = lazy(() => import("@/components/editors/DrawCanvas").then((m) => ({ default: m.DrawCanvas })));
@@ -15,12 +17,13 @@ const CornellNote = lazy(() => import("@/components/editors/CornellNote").then((
 // sidebar. A tiny unobtrusive save indicator floats in the corner.
 export function Workspace() {
   const activeId = useStore((s) => s.activeId);
+  const view = useStore((s) => s.view);
   const reloadNonce = useStore((s) => s.reloadNonce);
   const [item, setItem] = useState<FullItem | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!activeId) {
+    if (!activeId || view !== "item") {
       setItem(null);
       return;
     }
@@ -34,12 +37,22 @@ export function Workspace() {
     return () => {
       alive = false;
     };
-  }, [activeId, reloadNonce]);
+  }, [activeId, view, reloadNonce]);
 
   const { schedule, status } = useDebouncedSave<string>(async (content) => {
     if (!activeId) return;
     await api.updateItem(activeId, { content });
   });
+
+  if (view !== "item") {
+    return (
+      <div className="relative h-full min-w-0 flex-1 bg-[var(--page)]">
+        {view === "home" && <HomeView />}
+        {view === "archive" && <CollectionView kind="archive" />}
+        {view === "trash" && <CollectionView kind="trash" />}
+      </div>
+    );
+  }
 
   return (
     <div className="relative h-full min-w-0 flex-1 bg-[var(--page)]">

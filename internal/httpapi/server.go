@@ -63,6 +63,7 @@ func (s *Server) Router() http.Handler {
 			r.Post("/", s.handleCreateItem)
 			r.Get("/{id}", s.handleGetItem)
 			r.Put("/{id}", s.handleUpdateItem)
+			r.Post("/{id}/state", s.handleSetItemState)
 			r.Delete("/{id}", s.handleDeleteItem)
 			r.Post("/{id}/share", s.handleCreateShare)
 			r.Get("/{id}/shares", s.handleListShares)
