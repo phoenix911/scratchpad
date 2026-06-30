@@ -29,3 +29,4 @@ app.db-*
 
 # cross-compile output + staged box env (has secrets)
 /dist/
+scratchpad-linux-amd64

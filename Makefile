@@ -52,7 +52,9 @@ clean:
 # on the host (as configured for dell-box).
 
 # Build the SPA then cross-compile the server for the Dell box (linux/amd64).
-deploy-build: web
+# Uses `npm ci` for a reproducible install that won't mutate package-lock.json.
+deploy-build:
+	cd web && npm ci && npm run build
 	GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o $(AMD64_BIN) $(PKG)
 
 deploy: deploy-build
