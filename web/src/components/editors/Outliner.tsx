@@ -26,6 +26,15 @@ interface Props {
   readOnly?: boolean;
 }
 
+// Each bullet dot gets its own colour, derived from the node id so it's random
+// across bullets but stable for a given bullet across renders. Fixed saturation
+// and lightness keep every hue readable in both light and dark themes.
+function dotColor(id: string): string {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return `hsl(${h % 360} 65% 55%)`;
+}
+
 let counter = 0;
 const uid = () => `n-${Date.now().toString(36)}-${(counter++).toString(36)}`;
 const makeNode = (text = ""): Node => ({ id: uid(), text, children: [] });
@@ -328,9 +337,10 @@ function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
           className="mr-1 flex h-5 w-4 shrink-0 items-center justify-center"
         >
           <span
-            className={`h-[7px] w-[7px] rounded-full bg-[var(--ink-soft)] transition ${
+            className={`h-[7px] w-[7px] rounded-full transition ${
               collapsed && hasKids ? "ring-4 ring-[var(--hover)]" : ""
             }`}
+            style={{ background: dotColor(node.id) }}
           />
         </button>
         <input
