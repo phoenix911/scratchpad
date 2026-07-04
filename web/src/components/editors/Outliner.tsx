@@ -109,6 +109,16 @@ type Parsed =
   | { kind: "todo"; checked: boolean; text: string }
   | { kind: "text"; text: string };
 
+// Tailwind classes for a bullet's heading level (0 = not a heading).
+function headingClass(text: string): string {
+  const m = /^(#{1,6})\s/.exec(text);
+  const level = m ? m[1].length : 0;
+  if (level === 1) return "text-[18px] font-bold";
+  if (level === 2) return "text-[16px] font-semibold";
+  if (level >= 3) return "text-[14px] font-semibold";
+  return "text-[14px]";
+}
+
 function parseLine(raw: string): Parsed {
   const h = /^(#{1,6})\s+(.*)$/.exec(raw);
   if (h) return { kind: "heading", level: h[1].length, text: h[2] };
@@ -371,6 +381,9 @@ function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
   const collapsible = hasKids || multiline;
   const collapsed = !!node.collapsed;
   const editing = api.editingId === node.id && !api.readOnly;
+  // Heading style for the current text, applied live to the edit box too so
+  // "# " / "## " / "### " look like headings while typing (not just on blur).
+  const headingCls = headingClass(node.text);
 
   // Apply a focus request targeting this row (the input only exists while editing).
   useEffect(() => {
@@ -463,7 +476,7 @@ function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
             onChange={(e) => api.onText(node.id, e.target.value)}
             onKeyDown={onKeyDown}
             onBlur={api.onInputBlur}
-            className="block w-full flex-1 resize-none overflow-hidden bg-transparent py-1 text-[14px] leading-[1.5] text-[var(--ink)] outline-none"
+            className={`block w-full flex-1 resize-none overflow-hidden bg-transparent py-1 leading-[1.5] text-[var(--ink)] outline-none ${headingCls}`}
             placeholder=""
           />
         ) : (
