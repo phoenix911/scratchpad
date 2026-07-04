@@ -22,11 +22,13 @@ import { TrashIcon, CheckIcon } from "@/components/ui/icons";
 type Size = "1x1" | "1x2" | "1x3" | "2x2";
 const CELLS_FOR: Record<Size, number> = { "1x1": 1, "1x2": 2, "1x3": 3, "2x2": 4 };
 const SIZES: Size[] = ["1x1", "1x2", "1x3", "2x2"];
-const GRID_CLASS: Record<Size, string> = {
-  "1x1": "grid-cols-1 grid-rows-1",
-  "1x2": "grid-cols-2 grid-rows-1",
-  "1x3": "grid-cols-3 grid-rows-1",
-  "2x2": "grid-cols-2 grid-rows-2",
+// Inline grid templates (not Tailwind classes) so the layout can never be lost
+// to class purging when the size changes.
+const GRID_STYLE: Record<Size, React.CSSProperties> = {
+  "1x1": { gridTemplateColumns: "1fr", gridTemplateRows: "1fr" },
+  "1x2": { gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr" },
+  "1x3": { gridTemplateColumns: "1fr 1fr 1fr", gridTemplateRows: "1fr" },
+  "2x2": { gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr" },
 };
 
 // Preset note colours — tinted so they read in both light and dark themes.
@@ -173,7 +175,7 @@ export function StickyBoard({ docId, initialContent, onChange, readOnly }: Props
     commit({ ...board, cells: board.cells.map((c) => (c.id === cellId ? { ...c, title } : c)) });
 
   const grid = (
-    <div className={`grid h-full gap-3 p-4 ${GRID_CLASS[board.size]}`}>
+    <div className="grid h-full gap-3 p-4" style={GRID_STYLE[board.size]}>
       {board.cells.map((cell) => (
         <CellView
           key={cell.id}
@@ -244,9 +246,9 @@ function CellView({
     <div className="flex min-h-0 flex-col rounded-[10px] border border-[var(--line)] bg-[var(--sidebar)]">
       <div className="flex items-center gap-2 px-3 py-2">
         <input
-          defaultValue={cell.title}
+          value={cell.title}
           disabled={readOnly}
-          onBlur={(e) => e.target.value.trim() && onRename(cell.id, e.target.value.trim())}
+          onChange={(e) => onRename(cell.id, e.target.value)}
           className="min-w-0 flex-1 bg-transparent text-[12px] font-semibold uppercase tracking-wide text-[var(--ink-soft)] outline-none"
         />
         <span className="text-[11px] text-[var(--ink-faint)]">{cell.stickies.length}</span>

@@ -81,12 +81,11 @@ function ancestors(nodes: Node[], id: string): Node[] {
 }
 
 // Flattened top-to-bottom order of currently-visible bullets (respecting
-// collapse + hide-completed), used for arrow navigation and delete-focus.
-function visibleFlat(nodes: Node[], hideDone: boolean): Node[] {
+// collapse), used for arrow navigation and delete-focus.
+function visibleFlat(nodes: Node[]): Node[] {
   const out: Node[] = [];
   const walk = (ns: Node[]) => {
     for (const n of ns) {
-      if (hideDone && n.done) continue;
       out.push(n);
       if (!n.collapsed && n.children.length) walk(n.children);
     }
@@ -98,7 +97,6 @@ function visibleFlat(nodes: Node[], hideDone: boolean): Node[] {
 export function Outliner({ docId, initialContent, onChange, readOnly }: Props) {
   const [outline, setOutline] = useState<Outline>(() => parseOutline(initialContent));
   const [zoom, setZoom] = useState<string | null>(null);
-  const [hideDone, setHideDone] = useState(false);
   // Focus request: which node's input to focus next, and where to put the caret.
   const [focus, setFocus] = useState<{ id: string; pos: "start" | "end" } | null>(null);
 
@@ -133,12 +131,6 @@ export function Outliner({ docId, initialContent, onChange, readOnly }: Props) {
     edit((d) => {
       const n = findNode(d.nodes, id);
       if (n) n.collapsed = !n.collapsed;
-    });
-
-  const toggleDone = (id: string) =>
-    edit((d) => {
-      const n = findNode(d.nodes, id);
-      if (n) n.done = !n.done;
     });
 
   // Enter: split at the caret. If the bullet is expanded and has children, the
@@ -186,7 +178,7 @@ export function Outliner({ docId, initialContent, onChange, readOnly }: Props) {
 
   // Backspace on an empty bullet: delete it and focus the previous visible one.
   function removeEmpty(id: string) {
-    const flat = visibleFlat(roots(), hideDone);
+    const flat = visibleFlat(roots());
     if (flat.length <= 1) return; // keep at least one bullet
     const idx = flat.findIndex((n) => n.id === id);
     const prev = idx > 0 ? flat[idx - 1] : null;
@@ -198,7 +190,7 @@ export function Outliner({ docId, initialContent, onChange, readOnly }: Props) {
   }
 
   function moveFocus(id: string, dir: -1 | 1) {
-    const flat = visibleFlat(roots(), hideDone);
+    const flat = visibleFlat(roots());
     const idx = flat.findIndex((n) => n.id === id);
     const next = flat[idx + dir];
     if (next) setFocus({ id: next.id, pos: "end" });
@@ -209,36 +201,24 @@ export function Outliner({ docId, initialContent, onChange, readOnly }: Props) {
 
   return (
     <div className="mx-auto flex h-full w-full max-w-3xl flex-col">
-      {/* Breadcrumb (when zoomed) + hide-completed toggle */}
-      <div className="flex items-center gap-1.5 px-6 pt-5 text-[12px] text-[var(--ink-faint)]">
-        {zoom ? (
-          <>
-            <button onClick={() => setZoom(null)} className="transition hover:text-[var(--ink)]">
-              Home
-            </button>
-            {ancestors(outline.nodes, zoom).map((a) => (
-              <span key={a.id} className="flex items-center gap-1.5">
-                <ChevronRightIcon size={11} />
-                <button onClick={() => setZoom(a.id)} className="max-w-[160px] truncate transition hover:text-[var(--ink)]">
-                  {a.text || "untitled"}
-                </button>
-              </span>
-            ))}
-            <ChevronRightIcon size={11} />
-            <span className="text-[var(--ink-soft)]">{zoomRoot?.text || "untitled"}</span>
-          </>
-        ) : (
-          <span className="uppercase tracking-wide">Outline</span>
-        )}
-        <div className="ml-auto">
-          <button
-            onClick={() => setHideDone((h) => !h)}
-            className="rounded-[var(--radius)] px-2 py-1 transition hover:bg-[var(--hover)] hover:text-[var(--ink)]"
-          >
-            {hideDone ? "Show completed" : "Hide completed"}
+      {/* Breadcrumb — only when zoomed in */}
+      {zoom && (
+        <div className="flex items-center gap-1.5 px-6 pt-5 text-[12px] text-[var(--ink-faint)]">
+          <button onClick={() => setZoom(null)} className="transition hover:text-[var(--ink)]">
+            Home
           </button>
+          {ancestors(outline.nodes, zoom).map((a) => (
+            <span key={a.id} className="flex items-center gap-1.5">
+              <ChevronRightIcon size={11} />
+              <button onClick={() => setZoom(a.id)} className="max-w-[160px] truncate transition hover:text-[var(--ink)]">
+                {a.text || "untitled"}
+              </button>
+            </span>
+          ))}
+          <ChevronRightIcon size={11} />
+          <span className="text-[var(--ink-soft)]">{zoomRoot?.text || "untitled"}</span>
         </div>
-      </div>
+      )}
 
       {/* Zoomed bullet title */}
       {zoomRoot && (
@@ -248,35 +228,31 @@ export function Outliner({ docId, initialContent, onChange, readOnly }: Props) {
             defaultValue={zoomRoot.text}
             disabled={readOnly}
             onBlur={(e) => setText(zoomRoot.id, e.target.value)}
-            className={`w-full bg-transparent text-[20px] font-semibold text-[var(--ink)] outline-none ${zoomRoot.done ? "text-[var(--ink-faint)] line-through" : ""}`}
+            className="w-full bg-transparent text-[20px] font-semibold text-[var(--ink)] outline-none"
             placeholder="untitled"
           />
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto px-4 pb-16 pt-2">
+      <div className="flex-1 overflow-y-auto px-4 pb-16 pt-5">
         {empty && <p className="px-2 py-6 text-[13px] text-[var(--ink-faint)]">Empty. Nothing to show here.</p>}
-        {list
-          .filter((n) => !(hideDone && n.done))
-          .map((n) => (
-            <Row
-              key={n.id}
-              node={n}
-              depth={0}
-              readOnly={readOnly}
-              hideDone={hideDone}
-              focus={focus}
-              onText={setText}
-              onEnter={addAt}
-              onIndent={indent}
-              onOutdent={outdent}
-              onDelete={removeEmpty}
-              onMove={moveFocus}
-              onToggleCollapse={toggleCollapse}
-              onToggleDone={toggleDone}
-              onZoom={setZoom}
-            />
-          ))}
+        {list.map((n) => (
+          <Row
+            key={n.id}
+            node={n}
+            depth={0}
+            readOnly={readOnly}
+            focus={focus}
+            onText={setText}
+            onEnter={addAt}
+            onIndent={indent}
+            onOutdent={outdent}
+            onDelete={removeEmpty}
+            onMove={moveFocus}
+            onToggleCollapse={toggleCollapse}
+            onZoom={setZoom}
+          />
+        ))}
       </div>
     </div>
   );
@@ -284,7 +260,6 @@ export function Outliner({ docId, initialContent, onChange, readOnly }: Props) {
 
 interface RowApi {
   readOnly?: boolean;
-  hideDone: boolean;
   focus: { id: string; pos: "start" | "end" } | null;
   onText: (id: string, text: string) => void;
   onEnter: (id: string, caret: number, value: string) => void;
@@ -293,7 +268,6 @@ interface RowApi {
   onDelete: (id: string) => void;
   onMove: (id: string, dir: -1 | 1) => void;
   onToggleCollapse: (id: string) => void;
-  onToggleDone: (id: string) => void;
   onZoom: (id: string) => void;
 }
 
@@ -317,8 +291,7 @@ function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
     const el = e.currentTarget;
     if (e.key === "Enter") {
       e.preventDefault();
-      if (e.metaKey || e.ctrlKey) api.onToggleDone(node.id);
-      else api.onEnter(node.id, el.selectionStart ?? el.value.length, el.value);
+      api.onEnter(node.id, el.selectionStart ?? el.value.length, el.value);
     } else if (e.key === "Tab") {
       e.preventDefault();
       api.onText(node.id, el.value); // persist current text before the move
@@ -352,25 +325,13 @@ function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
           onClick={() => api.onZoom(node.id)}
           title="Zoom in"
           tabIndex={-1}
-          className="flex h-5 w-4 shrink-0 items-center justify-center"
+          className="mr-1 flex h-5 w-4 shrink-0 items-center justify-center"
         >
           <span
-            className={`h-[7px] w-[7px] rounded-full transition ${
+            className={`h-[7px] w-[7px] rounded-full bg-[var(--ink-soft)] transition ${
               collapsed && hasKids ? "ring-4 ring-[var(--hover)]" : ""
             }`}
-            style={{ background: node.done ? "var(--ink-faint)" : "var(--ink-soft)" }}
           />
-        </button>
-        {/* done toggle */}
-        <button
-          onClick={() => !api.readOnly && api.onToggleDone(node.id)}
-          tabIndex={-1}
-          title={node.done ? "Mark not done" : "Mark done"}
-          className={`mr-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] border text-[9px] transition ${
-            node.done ? "border-transparent bg-[var(--ink-faint)] text-[var(--page)]" : "border-[var(--line)] text-transparent hover:border-[var(--ink-faint)]"
-          }`}
-        >
-          ✓
         </button>
         <input
           ref={inputRef}
@@ -378,15 +339,12 @@ function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
           disabled={api.readOnly}
           onChange={(e) => api.onText(node.id, e.target.value)}
           onKeyDown={onKeyDown}
-          className={`flex-1 bg-transparent py-1 text-[14px] text-[var(--ink)] outline-none ${node.done ? "text-[var(--ink-faint)] line-through" : ""}`}
+          className="flex-1 bg-transparent py-1 text-[14px] text-[var(--ink)] outline-none"
           placeholder=""
         />
       </div>
 
-      {!collapsed &&
-        node.children
-          .filter((c) => !(api.hideDone && c.done))
-          .map((c) => <Row key={c.id} node={c} depth={depth + 1} {...api} />)}
+      {!collapsed && node.children.map((c) => <Row key={c.id} node={c} depth={depth + 1} {...api} />)}
     </div>
   );
 }
