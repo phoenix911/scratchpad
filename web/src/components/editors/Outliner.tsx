@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronIcon, ChevronRightIcon } from "@/components/ui/icons";
+import { ChevronRightIcon } from "@/components/ui/icons";
 
 // A WorkFlowy-style collapsible outliner: an infinitely nestable bullet tree.
 // Tab/Shift-Tab indent/outdent, Enter adds a sibling (or splits text), Backspace
@@ -378,11 +378,24 @@ function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
     el.setSelectionRange(at, at);
   }, [api.focus, node.id, editing]);
 
+  // Auto-grow the textarea to fit all its lines (explicit breaks *and* wrapped
+  // long lines), so nothing is clipped to the top line while editing.
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!editing || !el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [editing, node.text]);
+
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (api.readOnly) return;
     const el = e.currentTarget;
     const caret = el.selectionStart ?? el.value.length;
-    if (e.key === "Enter" && !e.shiftKey) {
+    if ((e.metaKey || e.ctrlKey) && e.key === ".") {
+      // Collapse/expand the current bullet's branch.
+      e.preventDefault();
+      if (hasKids) api.onToggleCollapse(node.id);
+    } else if (e.key === "Enter" && !e.shiftKey) {
       // Plain Enter splits into a new bullet; Shift+Enter falls through to the
       // textarea's default and inserts a line break within this bullet.
       e.preventDefault();
@@ -418,10 +431,10 @@ function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
         {/* collapse triangle (only if it has children) */}
         <button
           onClick={() => hasKids && api.onToggleCollapse(node.id)}
-          className={`flex h-5 w-4 shrink-0 items-center justify-center text-[var(--ink-faint)] ${hasKids ? "hover:text-[var(--ink)]" : "opacity-0"}`}
+          className={`flex h-5 w-4 shrink-0 items-center justify-center text-[15px] font-bold leading-none text-[var(--ink-soft)] ${hasKids ? "hover:text-[var(--ink)]" : "opacity-0"}`}
           tabIndex={-1}
         >
-          {collapsed ? <ChevronRightIcon size={12} /> : <ChevronIcon size={12} />}
+          {collapsed ? "+" : "−"}
         </button>
         {/* bullet dot — click to zoom in */}
         <button
@@ -441,12 +454,12 @@ function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
           <textarea
             ref={inputRef}
             data-bullet
-            rows={Math.max(1, node.text.split("\n").length)}
+            rows={1}
             value={node.text}
             onChange={(e) => api.onText(node.id, e.target.value)}
             onKeyDown={onKeyDown}
             onBlur={api.onInputBlur}
-            className="flex-1 resize-none overflow-hidden bg-transparent py-1 text-[14px] leading-[1.5] text-[var(--ink)] outline-none"
+            className="block w-full flex-1 resize-none overflow-hidden bg-transparent py-1 text-[14px] leading-[1.5] text-[var(--ink)] outline-none"
             placeholder=""
           />
         ) : (
