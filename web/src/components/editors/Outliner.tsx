@@ -365,6 +365,10 @@ interface RowApi {
 function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const hasKids = node.children.length > 0;
+  const multiline = node.text.includes("\n");
+  // A bullet folds if it has children or extra lines — collapsing hides child
+  // bullets and shows only the first line of a multi-line bullet.
+  const collapsible = hasKids || multiline;
   const collapsed = !!node.collapsed;
   const editing = api.editingId === node.id && !api.readOnly;
 
@@ -394,7 +398,7 @@ function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
     if ((e.metaKey || e.ctrlKey) && e.key === ".") {
       // Collapse/expand the current bullet's branch.
       e.preventDefault();
-      if (hasKids) api.onToggleCollapse(node.id);
+      if (collapsible) api.onToggleCollapse(node.id);
     } else if (e.key === "Enter" && !e.shiftKey) {
       // Plain Enter splits into a new bullet; Shift+Enter falls through to the
       // textarea's default and inserts a line break within this bullet.
@@ -430,8 +434,8 @@ function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
       <div className="group flex items-start gap-1" style={{ paddingLeft: depth * 22 }}>
         {/* collapse triangle (only if it has children) */}
         <button
-          onClick={() => hasKids && api.onToggleCollapse(node.id)}
-          className={`flex h-5 w-4 shrink-0 items-center justify-center text-[15px] font-bold leading-none text-[var(--ink-soft)] ${hasKids ? "hover:text-[var(--ink)]" : "opacity-0"}`}
+          onClick={() => collapsible && api.onToggleCollapse(node.id)}
+          className={`flex h-5 w-4 shrink-0 items-center justify-center text-[15px] font-bold leading-none text-[var(--ink-soft)] ${collapsible ? "hover:text-[var(--ink)]" : "opacity-0"}`}
           tabIndex={-1}
         >
           {collapsed ? "+" : "−"}
@@ -445,7 +449,7 @@ function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
         >
           <span
             className={`h-[7px] w-[7px] rounded-full transition ${
-              collapsed && hasKids ? "ring-4 ring-[var(--hover)]" : ""
+              collapsed && collapsible ? "ring-4 ring-[var(--hover)]" : ""
             }`}
             style={{ background: dotColor(node.id) }}
           />
@@ -463,7 +467,7 @@ function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
             placeholder=""
           />
         ) : (
-          <Display node={node} readOnly={api.readOnly} onEdit={() => api.onStartEdit(node.id)} onToggleTodo={() => api.onToggleTodo(node.id)} />
+          <Display node={node} collapsed={collapsed} readOnly={api.readOnly} onEdit={() => api.onStartEdit(node.id)} onToggleTodo={() => api.onToggleTodo(node.id)} />
         )}
       </div>
 
@@ -476,23 +480,30 @@ function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
 // styles. Clicking the text switches the row into raw-edit mode.
 function Display({
   node,
+  collapsed,
   readOnly,
   onEdit,
   onToggleTodo,
 }: {
   node: Node;
+  collapsed: boolean;
   readOnly?: boolean;
   onEdit: () => void;
   onToggleTodo: () => void;
 }) {
-  const p = parseLine(node.text);
+  const multiline = node.text.includes("\n");
+  // When collapsed, only the first line is shown; a trailing "…" hints there's more.
+  const shown = collapsed && multiline ? node.text.split("\n")[0] : node.text;
+  const p = parseLine(shown);
   const editable = readOnly ? undefined : onEdit;
+  const more = collapsed && multiline ? <span className="text-[var(--ink-faint)]"> …</span> : null;
 
   if (p.kind === "heading") {
     const cls = p.level === 1 ? "text-[18px] font-bold" : p.level === 2 ? "text-[16px] font-semibold" : "text-[14px] font-semibold";
     return (
       <div onClick={editable} className={`flex-1 cursor-text py-1 text-[var(--ink)] ${cls}`}>
         {inline(p.text) || <span className="text-[var(--ink-faint)]">&nbsp;</span>}
+        {more}
       </div>
     );
   }
@@ -514,6 +525,7 @@ function Display({
         </button>
         <span onClick={editable} className={`flex-1 cursor-text text-[14px] ${p.checked ? "text-[var(--ink-faint)] line-through" : "text-[var(--ink)]"}`}>
           {inline(p.text) || <span className="text-[var(--ink-faint)]">&nbsp;</span>}
+          {more}
         </span>
       </div>
     );
@@ -521,7 +533,8 @@ function Display({
 
   return (
     <div onClick={editable} className="flex-1 cursor-text whitespace-pre-wrap break-words py-1 text-[14px] leading-[1.5] text-[var(--ink)]">
-      {inline(node.text) || <span className="text-[var(--ink-faint)]">&nbsp;</span>}
+      {inline(shown) || <span className="text-[var(--ink-faint)]">&nbsp;</span>}
+      {more}
     </div>
   );
 }
