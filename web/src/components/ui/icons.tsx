@@ -44,6 +44,12 @@ export const CornellIcon = ({ size = 16, className }: P) => (
     <path d="M9 4v11M3 15h18" />
   </svg>
 );
+export const StickyIcon = ({ size = 16, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <path d="M4 4h16v11l-5 5H4a0 0 0 0 1 0 0V4Z" />
+    <path d="M20 15h-5v5" />
+  </svg>
+);
 export const PlusIcon = ({ size = 16, className }: P) => (
   <svg {...base(size)} className={className}>
     <path d="M12 5v14M5 12h14" />

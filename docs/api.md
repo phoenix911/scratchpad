@@ -11,17 +11,19 @@ POST   /api/logout
 GET    /api/me                         → { authed, app } | 401
 ```
 
-## Items (all five types)
+## Items (all types)
 
 ```
 GET    /api/items                      → { items: [...] }   (metadata only)
 POST   /api/items                      { type, title, folder?, language?, content }
 GET    /api/items/:id                  → { ...meta, content }
 PUT    /api/items/:id                  { title?, folder?, language?, content? }
-DELETE /api/items/:id
+POST   /api/items/:id/state            { state: "active" | "archived" | "trashed" }
+DELETE /api/items/:id                  (permanent delete — from the recycle bin)
 ```
-`type` is one of `code | draw | mind | doc | kanban`. `content` is the editor's
-serialized form (source text, Excalidraw/Mind Elixir/Kanban JSON, or doc HTML).
+`type` is one of `code | draw | mind | doc | kanban | cornell | sticky`. `content`
+is the editor's serialized form (source text; Excalidraw / Mind Elixir / Kanban /
+sticky-board JSON; or doc HTML).
 
 ## Folders
 

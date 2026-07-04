@@ -1,6 +1,6 @@
 # Item types
 
-Scratchpad has six item types. They all share the same pipeline — a file on
+Scratchpad has seven item types. They all share the same pipeline — a file on
 disk, autosave, git sync, version history, and read-only sharing — and differ
 only in their editor and on-disk format.
 
@@ -12,6 +12,7 @@ only in their editor and on-disk format.
 | Doc | `.doc` | [Tiptap](https://tiptap.dev) | HTML | `.doc` |
 | Board | `.kb` | custom Kanban (dnd-kit) | board JSON | `.kanban` |
 | Cornell note | `.cn` | cue / notes / summary layout (Markdown auto-formats) | JSON | `.cornell` |
+| Sticky board | `.sb` | resizable grid of cells with colored sticky notes (dnd-kit) | board JSON | `.sticky` |
 
 Create any of them from the **⌘K** command palette.
 
@@ -37,6 +38,9 @@ folder structure is mirrored in the git repo.
   so it renders and diffs nicely in your git host.
 - **Drawing / Mindmap / Board** store editor JSON; they're rendered read-only
   (pan/zoom, no edit) in shares and version previews.
+- **Sticky board** is a resizable grid of labeled cells (1×1 default, or 1×2 /
+  1×3 / 2×2) holding colored sticky notes you can drag between cells, mark done
+  (strikethrough), and delete.
 - **Doc** stores HTML (git-diffable), supports Markdown-style input rules, and
   lets you paste images (stored under `DATA_DIR/assets`).
 - Any item can reference another with `[[Item Title]]`; see the backlinks panel.

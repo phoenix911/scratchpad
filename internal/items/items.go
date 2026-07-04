@@ -45,12 +45,14 @@ const (
 	TypeDoc     = "doc"
 	TypeKanban  = "kanban"
 	TypeCornell = "cornell"
+	TypeSticky  = "sticky"
 
 	drawExt    = "excalidraw"
 	mindExt    = "mind"
 	docExt     = "doc"
 	kanbanExt  = "kanban"
 	cornellExt = "cornell"
+	stickyExt  = "sticky"
 	itemsRoot  = "items"
 	// archiveRoot and trashRoot mirror itemsRoot for archived and recycle-bin
 	// items. Archiving/trashing moves a file from items/<folder>/… to
@@ -62,7 +64,7 @@ const (
 
 func validType(t string) bool {
 	switch t {
-	case TypeCode, TypeDraw, TypeMind, TypeDoc, TypeKanban, TypeCornell:
+	case TypeCode, TypeDraw, TypeMind, TypeDoc, TypeKanban, TypeCornell, TypeSticky:
 		return true
 	}
 	return false
@@ -399,6 +401,8 @@ func (s *Service) relPath(it store.Item) string {
 		ext = kanbanExt
 	case TypeCornell:
 		ext = cornellExt
+	case TypeSticky:
+		ext = stickyExt
 	}
 	name := fmt.Sprintf("%s-%s.%s", slug(it.Title), it.ID, ext)
 	root := rootFor(it)
