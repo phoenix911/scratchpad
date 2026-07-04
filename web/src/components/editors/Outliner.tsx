@@ -103,15 +103,63 @@ function visibleFlat(nodes: Node[]): Node[] {
   return out;
 }
 
+// --- lightweight per-bullet markdown ---
+type Parsed =
+  | { kind: "heading"; level: number; text: string }
+  | { kind: "todo"; checked: boolean; text: string }
+  | { kind: "text"; text: string };
+
+function parseLine(raw: string): Parsed {
+  const h = /^(#{1,6})\s+(.*)$/.exec(raw);
+  if (h) return { kind: "heading", level: h[1].length, text: h[2] };
+  const t = /^(?:[-*]\s+)?\[([ xX])\]\s*(.*)$/.exec(raw);
+  if (t) return { kind: "todo", checked: t[1].toLowerCase() === "x", text: t[2] };
+  return { kind: "text", text: raw };
+}
+
+// Flip a "[ ]" / "[x]" checkbox marker in place, preserving any leading "- ".
+function toggleTodoText(raw: string): string {
+  return raw.replace(/^(\s*(?:[-*]\s+)?)\[([ xX])\]/, (_, pre, mark) => `${pre}[${mark === " " ? "x" : " "}]`);
+}
+
+// Render inline **bold**, *italic*, `code` and ~~strike~~.
+function inline(text: string): React.ReactNode {
+  if (!text) return null;
+  const re = /(\*\*([^*]+)\*\*|\*([^*]+)\*|`([^`]+)`|~~([^~]+)~~)/g;
+  const out: React.ReactNode[] = [];
+  let last = 0;
+  let key = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text))) {
+    if (m.index > last) out.push(text.slice(last, m.index));
+    if (m[2] != null) out.push(<strong key={key++}>{m[2]}</strong>);
+    else if (m[3] != null) out.push(<em key={key++}>{m[3]}</em>);
+    else if (m[4] != null)
+      out.push(
+        <code key={key++} className="rounded bg-[var(--hover)] px-1 text-[0.9em]">
+          {m[4]}
+        </code>,
+      );
+    else if (m[5] != null) out.push(<span key={key++} className="line-through opacity-70">{m[5]}</span>);
+    last = re.lastIndex;
+  }
+  if (last < text.length) out.push(text.slice(last));
+  return out;
+}
+
 export function Outliner({ docId, initialContent, onChange, readOnly }: Props) {
   const [outline, setOutline] = useState<Outline>(() => parseOutline(initialContent));
   const [zoom, setZoom] = useState<string | null>(null);
+  // Which bullet is currently being edited (shows a raw <input>); all others
+  // render their markdown. null = nothing being edited.
+  const [editingId, setEditingId] = useState<string | null>(null);
   // Focus request: which node's input to focus next, and where to put the caret.
   const [focus, setFocus] = useState<{ id: string; pos: "start" | "end" } | null>(null);
 
   useEffect(() => {
     setOutline(parseOutline(initialContent));
     setZoom(null);
+    setEditingId(null);
   }, [docId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function commit(next: Outline) {
@@ -142,6 +190,25 @@ export function Outliner({ docId, initialContent, onChange, readOnly }: Props) {
       if (n) n.collapsed = !n.collapsed;
     });
 
+  const toggleTodo = (id: string) =>
+    edit((d) => {
+      const n = findNode(d.nodes, id);
+      if (n) n.text = toggleTodoText(n.text);
+    });
+
+  // Click a rendered bullet → edit its raw text.
+  const startEdit = (id: string) => {
+    setEditingId(id);
+    setFocus({ id, pos: "end" });
+  };
+  // When an input loses focus, drop out of edit mode only if focus left the
+  // bullets entirely (so arrow/Tab moves between bullets stay in edit mode).
+  const inputBlur = () =>
+    setTimeout(() => {
+      const el = document.activeElement as HTMLElement | null;
+      if (!el || !el.hasAttribute("data-bullet")) setEditingId(null);
+    }, 0);
+
   // Enter: split at the caret. If the bullet is expanded and has children, the
   // remainder becomes its first child; otherwise a following sibling.
   function addAt(id: string, caret: number, value: string) {
@@ -157,6 +224,7 @@ export function Outliner({ docId, initialContent, onChange, readOnly }: Props) {
       if (!node.collapsed && node.children.length) node.children.unshift(fresh);
       else loc.arr.splice(loc.index + 1, 0, fresh);
     });
+    setEditingId(newId);
     setFocus({ id: newId, pos: "start" });
   }
 
@@ -195,14 +263,20 @@ export function Outliner({ docId, initialContent, onChange, readOnly }: Props) {
       const loc = locate(d.nodes, id);
       if (loc && loc.arr[loc.index].children.length === 0) loc.arr.splice(loc.index, 1);
     });
-    if (prev) setFocus({ id: prev.id, pos: "end" });
+    if (prev) {
+      setEditingId(prev.id);
+      setFocus({ id: prev.id, pos: "end" });
+    }
   }
 
   function moveFocus(id: string, dir: -1 | 1) {
     const flat = visibleFlat(roots());
     const idx = flat.findIndex((n) => n.id === id);
     const next = flat[idx + dir];
-    if (next) setFocus({ id: next.id, pos: "end" });
+    if (next) {
+      setEditingId(next.id);
+      setFocus({ id: next.id, pos: "end" });
+    }
   }
 
   const list = roots();
@@ -251,6 +325,7 @@ export function Outliner({ docId, initialContent, onChange, readOnly }: Props) {
             node={n}
             depth={0}
             readOnly={readOnly}
+            editingId={editingId}
             focus={focus}
             onText={setText}
             onEnter={addAt}
@@ -259,6 +334,9 @@ export function Outliner({ docId, initialContent, onChange, readOnly }: Props) {
             onDelete={removeEmpty}
             onMove={moveFocus}
             onToggleCollapse={toggleCollapse}
+            onToggleTodo={toggleTodo}
+            onStartEdit={startEdit}
+            onInputBlur={inputBlur}
             onZoom={setZoom}
           />
         ))}
@@ -269,6 +347,7 @@ export function Outliner({ docId, initialContent, onChange, readOnly }: Props) {
 
 interface RowApi {
   readOnly?: boolean;
+  editingId: string | null;
   focus: { id: string; pos: "start" | "end" } | null;
   onText: (id: string, text: string) => void;
   onEnter: (id: string, caret: number, value: string) => void;
@@ -277,6 +356,9 @@ interface RowApi {
   onDelete: (id: string) => void;
   onMove: (id: string, dir: -1 | 1) => void;
   onToggleCollapse: (id: string) => void;
+  onToggleTodo: (id: string) => void;
+  onStartEdit: (id: string) => void;
+  onInputBlur: () => void;
   onZoom: (id: string) => void;
 }
 
@@ -284,16 +366,17 @@ function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
   const inputRef = useRef<HTMLInputElement>(null);
   const hasKids = node.children.length > 0;
   const collapsed = !!node.collapsed;
+  const editing = api.editingId === node.id && !api.readOnly;
 
-  // Apply a focus request targeting this row.
+  // Apply a focus request targeting this row (the input only exists while editing).
   useEffect(() => {
-    if (api.focus?.id !== node.id) return;
+    if (api.focus?.id !== node.id || !editing) return;
     const el = inputRef.current;
     if (!el) return;
     el.focus();
     const at = api.focus.pos === "start" ? 0 : el.value.length;
     el.setSelectionRange(at, at);
-  }, [api.focus, node.id]);
+  }, [api.focus, node.id, editing]);
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (api.readOnly) return;
@@ -301,6 +384,8 @@ function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
     if (e.key === "Enter") {
       e.preventDefault();
       api.onEnter(node.id, el.selectionStart ?? el.value.length, el.value);
+    } else if (e.key === "Escape") {
+      el.blur();
     } else if (e.key === "Tab") {
       e.preventDefault();
       api.onText(node.id, el.value); // persist current text before the move
@@ -343,18 +428,77 @@ function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
             style={{ background: dotColor(node.id) }}
           />
         </button>
-        <input
-          ref={inputRef}
-          value={node.text}
-          disabled={api.readOnly}
-          onChange={(e) => api.onText(node.id, e.target.value)}
-          onKeyDown={onKeyDown}
-          className="flex-1 bg-transparent py-1 text-[14px] text-[var(--ink)] outline-none"
-          placeholder=""
-        />
+        {editing ? (
+          <input
+            ref={inputRef}
+            data-bullet
+            value={node.text}
+            onChange={(e) => api.onText(node.id, e.target.value)}
+            onKeyDown={onKeyDown}
+            onBlur={api.onInputBlur}
+            className="flex-1 bg-transparent py-1 text-[14px] text-[var(--ink)] outline-none"
+            placeholder=""
+          />
+        ) : (
+          <Display node={node} readOnly={api.readOnly} onEdit={() => api.onStartEdit(node.id)} onToggleTodo={() => api.onToggleTodo(node.id)} />
+        )}
       </div>
 
       {!collapsed && node.children.map((c) => <Row key={c.id} node={c} depth={depth + 1} {...api} />)}
+    </div>
+  );
+}
+
+// Rendered (non-editing) bullet: markdown headings, todo checkboxes and inline
+// styles. Clicking the text switches the row into raw-edit mode.
+function Display({
+  node,
+  readOnly,
+  onEdit,
+  onToggleTodo,
+}: {
+  node: Node;
+  readOnly?: boolean;
+  onEdit: () => void;
+  onToggleTodo: () => void;
+}) {
+  const p = parseLine(node.text);
+  const editable = readOnly ? undefined : onEdit;
+
+  if (p.kind === "heading") {
+    const cls = p.level === 1 ? "text-[18px] font-bold" : p.level === 2 ? "text-[16px] font-semibold" : "text-[14px] font-semibold";
+    return (
+      <div onClick={editable} className={`flex-1 cursor-text py-1 text-[var(--ink)] ${cls}`}>
+        {inline(p.text) || <span className="text-[var(--ink-faint)]">&nbsp;</span>}
+      </div>
+    );
+  }
+
+  if (p.kind === "todo") {
+    return (
+      <div className="flex flex-1 items-center gap-2 py-1">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!readOnly) onToggleTodo();
+          }}
+          tabIndex={-1}
+          className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] border text-[9px] transition ${
+            p.checked ? "border-transparent bg-[var(--ink-faint)] text-[var(--page)]" : "border-[var(--line-strong)] text-transparent hover:border-[var(--ink-faint)]"
+          }`}
+        >
+          ✓
+        </button>
+        <span onClick={editable} className={`flex-1 cursor-text text-[14px] ${p.checked ? "text-[var(--ink-faint)] line-through" : "text-[var(--ink)]"}`}>
+          {inline(p.text) || <span className="text-[var(--ink-faint)]">&nbsp;</span>}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div onClick={editable} className="flex-1 cursor-text py-1 text-[14px] text-[var(--ink)]">
+      {inline(node.text) || <span className="text-[var(--ink-faint)]">&nbsp;</span>}
     </div>
   );
 }
