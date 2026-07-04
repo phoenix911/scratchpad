@@ -13,6 +13,7 @@ const TiptapEditor = lazy(() => import("@/components/editors/TiptapEditor").then
 const KanbanBoard = lazy(() => import("@/components/editors/KanbanBoard").then((m) => ({ default: m.KanbanBoard })));
 const CornellNote = lazy(() => import("@/components/editors/CornellNote").then((m) => ({ default: m.CornellNote })));
 const StickyBoard = lazy(() => import("@/components/editors/StickyBoard").then((m) => ({ default: m.StickyBoard })));
+const Outliner = lazy(() => import("@/components/editors/Outliner").then((m) => ({ default: m.Outliner })));
 
 // The main pane is just the editor/canvas, full-bleed — all controls live in the
 // sidebar. A tiny unobtrusive save indicator floats in the corner.
@@ -95,6 +96,11 @@ export function Workspace() {
       {item && !loading && item.type === "sticky" && (
         <Suspense fallback={<Centered>loading board…</Centered>}>
           <StickyBoard docId={item.id} initialContent={item.content} onChange={schedule} />
+        </Suspense>
+      )}
+      {item && !loading && item.type === "wf" && (
+        <Suspense fallback={<Centered>loading…</Centered>}>
+          <Outliner docId={item.id} initialContent={item.content} onChange={schedule} />
         </Suspense>
       )}
       <SaveBadge status={status} />

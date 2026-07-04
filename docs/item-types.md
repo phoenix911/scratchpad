@@ -1,6 +1,6 @@
 # Item types
 
-Scratchpad has seven item types. They all share the same pipeline — a file on
+Scratchpad has eight item types. They all share the same pipeline — a file on
 disk, autosave, git sync, version history, and read-only sharing — and differ
 only in their editor and on-disk format.
 
@@ -13,6 +13,7 @@ only in their editor and on-disk format.
 | Board | `.kb` | custom Kanban (dnd-kit) | board JSON | `.kanban` |
 | Cornell note | `.cn` | cue / notes / summary layout (Markdown auto-formats) | JSON | `.cornell` |
 | Sticky board | `.sb` | resizable grid of cells with colored sticky notes (dnd-kit) | board JSON | `.sticky` |
+| Outline | `.wf` | WorkFlowy-style collapsible bullet outliner | tree JSON | `.wf` |
 
 Create any of them from the **⌘K** command palette.
 
@@ -41,6 +42,11 @@ folder structure is mirrored in the git repo.
 - **Sticky board** is a resizable grid of labeled cells (1×1 default, or 1×2 /
   1×3 / 2×2) holding colored sticky notes you can drag between cells, mark done
   (strikethrough), and delete.
+- **Outline** is a WorkFlowy-style collapsible bullet tree: `Tab` / `Shift+Tab`
+  indent/outdent, `Enter` adds a bullet (splitting at the caret), `Backspace` on
+  an empty bullet removes it, the triangle collapses a branch, clicking a bullet
+  zooms into it (breadcrumb to zoom out), and `Ctrl/Cmd+Enter` marks a bullet
+  done. Completed bullets can be hidden.
 - **Doc** stores HTML (git-diffable), supports Markdown-style input rules, and
   lets you paste images (stored under `DATA_DIR/assets`).
 - Any item can reference another with `[[Item Title]]`; see the backlinks panel.

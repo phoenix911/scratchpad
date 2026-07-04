@@ -50,6 +50,16 @@ export const StickyIcon = ({ size = 16, className }: P) => (
     <path d="M20 15h-5v5" />
   </svg>
 );
+export const OutlineIcon = ({ size = 16, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <circle cx="5" cy="6" r="1.4" />
+    <path d="M9 6h11" />
+    <circle cx="9" cy="12" r="1.4" />
+    <path d="M13 12h7" />
+    <circle cx="13" cy="18" r="1.4" />
+    <path d="M17 18h3" />
+  </svg>
+);
 export const PlusIcon = ({ size = 16, className }: P) => (
   <svg {...base(size)} className={className}>
     <path d="M12 5v14M5 12h14" />

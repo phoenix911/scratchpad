@@ -8,6 +8,7 @@ const TiptapEditor = lazy(() => import("@/components/editors/TiptapEditor").then
 const KanbanBoard = lazy(() => import("@/components/editors/KanbanBoard").then((m) => ({ default: m.KanbanBoard })));
 const CornellNote = lazy(() => import("@/components/editors/CornellNote").then((m) => ({ default: m.CornellNote })));
 const StickyBoard = lazy(() => import("@/components/editors/StickyBoard").then((m) => ({ default: m.StickyBoard })));
+const Outliner = lazy(() => import("@/components/editors/Outliner").then((m) => ({ default: m.Outliner })));
 
 // Read-only render of any item type. Shared by the public share page and the
 // version-history preview so they stay in sync.
@@ -56,6 +57,12 @@ export function ItemViewer({
     return (
       <Suspense fallback={fallback}>
         <StickyBoard docId={docId} initialContent={content} readOnly />
+      </Suspense>
+    );
+  if (type === "wf")
+    return (
+      <Suspense fallback={fallback}>
+        <Outliner docId={docId} initialContent={content} readOnly />
       </Suspense>
     );
   return (

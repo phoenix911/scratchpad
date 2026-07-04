@@ -92,6 +92,8 @@ func (s *Service) reconcileRoot(rootName string, archived, trashed bool, seen ma
 			it.Type = TypeCornell
 		case stickyExt:
 			it.Type = TypeSticky
+		case wfExt:
+			it.Type = TypeWF
 		default:
 			it.Type = TypeCode
 			it.Language = languageForExt(ext)
