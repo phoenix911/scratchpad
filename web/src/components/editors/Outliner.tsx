@@ -363,7 +363,7 @@ interface RowApi {
 }
 
 function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const hasKids = node.children.length > 0;
   const collapsed = !!node.collapsed;
   const editing = api.editingId === node.id && !api.readOnly;
@@ -378,12 +378,15 @@ function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
     el.setSelectionRange(at, at);
   }, [api.focus, node.id, editing]);
 
-  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+  function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (api.readOnly) return;
     const el = e.currentTarget;
-    if (e.key === "Enter") {
+    const caret = el.selectionStart ?? el.value.length;
+    if (e.key === "Enter" && !e.shiftKey) {
+      // Plain Enter splits into a new bullet; Shift+Enter falls through to the
+      // textarea's default and inserts a line break within this bullet.
       e.preventDefault();
-      api.onEnter(node.id, el.selectionStart ?? el.value.length, el.value);
+      api.onEnter(node.id, caret, el.value);
     } else if (e.key === "Escape") {
       el.blur();
     } else if (e.key === "Tab") {
@@ -391,21 +394,27 @@ function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
       api.onText(node.id, el.value); // persist current text before the move
       if (e.shiftKey) api.onOutdent(node.id);
       else api.onIndent(node.id);
-    } else if (e.key === "Backspace" && el.value === "" && el.selectionStart === 0) {
+    } else if (e.key === "Backspace" && el.value === "" && caret === 0) {
       e.preventDefault();
       api.onDelete(node.id);
     } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      api.onMove(node.id, -1);
+      // Only leave for the previous bullet from the first line.
+      if (el.value.lastIndexOf("\n", caret - 1) === -1) {
+        e.preventDefault();
+        api.onMove(node.id, -1);
+      }
     } else if (e.key === "ArrowDown") {
-      e.preventDefault();
-      api.onMove(node.id, 1);
+      // Only leave for the next bullet from the last line.
+      if (el.value.indexOf("\n", caret) === -1) {
+        e.preventDefault();
+        api.onMove(node.id, 1);
+      }
     }
   }
 
   return (
     <div>
-      <div className="group flex items-center gap-1" style={{ paddingLeft: depth * 22 }}>
+      <div className="group flex items-start gap-1" style={{ paddingLeft: depth * 22 }}>
         {/* collapse triangle (only if it has children) */}
         <button
           onClick={() => hasKids && api.onToggleCollapse(node.id)}
@@ -429,14 +438,15 @@ function Row({ node, depth, ...api }: { node: Node; depth: number } & RowApi) {
           />
         </button>
         {editing ? (
-          <input
+          <textarea
             ref={inputRef}
             data-bullet
+            rows={Math.max(1, node.text.split("\n").length)}
             value={node.text}
             onChange={(e) => api.onText(node.id, e.target.value)}
             onKeyDown={onKeyDown}
             onBlur={api.onInputBlur}
-            className="flex-1 bg-transparent py-1 text-[14px] text-[var(--ink)] outline-none"
+            className="flex-1 resize-none overflow-hidden bg-transparent py-1 text-[14px] leading-[1.5] text-[var(--ink)] outline-none"
             placeholder=""
           />
         ) : (
@@ -497,7 +507,7 @@ function Display({
   }
 
   return (
-    <div onClick={editable} className="flex-1 cursor-text py-1 text-[14px] text-[var(--ink)]">
+    <div onClick={editable} className="flex-1 cursor-text whitespace-pre-wrap break-words py-1 text-[14px] leading-[1.5] text-[var(--ink)]">
       {inline(node.text) || <span className="text-[var(--ink-faint)]">&nbsp;</span>}
     </div>
   );
