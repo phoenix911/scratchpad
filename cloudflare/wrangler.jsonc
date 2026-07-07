@@ -1,0 +1,31 @@
+{
+  // Cloudflare Pages project for the Cloudflare-native Scratchpad deployment.
+  // The React SPA (../web/dist) is the static asset dir; functions/ is bundled
+  // automatically as Pages Functions. Fill in the ids from `wrangler d1 create`
+  // and `wrangler r2 bucket create` (bucket name can stay if it matches).
+  "name": "scratchpad",
+  "compatibility_date": "2025-01-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "pages_build_output_dir": "../web/dist",
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "scratchpad",
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
+    }
+  ],
+
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "scratchpad"
+    }
+  ],
+
+  // Non-secret vars. Set SCRATCHPAD_PASSWORD with `wrangler pages secret put`.
+  "vars": {
+    "APP_NAME": "Scratchpad",
+    "SHARE_BASE_URL": ""
+  }
+}

@@ -1,6 +1,7 @@
 .PHONY: all web build run dev tidy clean cross \
         deploy deploy-build release \
-        remote-status remote-logs remote-restart remote-health
+        remote-status remote-logs remote-restart remote-health \
+        deploy-cf
 
 BIN := scratchpad
 PKG := ./cmd/scratchpad
@@ -72,6 +73,14 @@ deploy: deploy-build
 # this when you want a tracked release artifact; `make deploy` is the fast path.
 release:
 	git tag -a "v0.2.$$(date +%y%m%d%H%M%S)" -m "release" && git push origin --tags
+
+# ── Cloudflare-native deploy (Pages + Functions + R2 + D1) ───────────────────
+# Builds the SPA and deploys it + functions/ to the "scratchpad" Pages project.
+# Needs CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID in the environment and a
+# populated cloudflare/wrangler.jsonc (D1 id). See cloudflare/README.md.
+deploy-cf:
+	cd web && npm ci && npm run build
+	cd cloudflare && npx wrangler pages deploy ../web/dist --project-name scratchpad
 
 # Remote control shortcuts (mirror the on-box Makefile).
 remote-status:  ; ssh $(DEPLOY_HOST) 'systemctl --no-pager status $(DEPLOY_SVC) | head -15'

@@ -1,6 +1,12 @@
 # secrets & local config — never commit
 .env
 what_i_need
+cloudflare_api_keys
+
+# cloudflare deploy: local deps + wrangler state
+/cloudflare/node_modules/
+/cloudflare/.wrangler/
+/cloudflare/.dev.vars
 
 # rebuildable SQLite index
 scratchpad.db
