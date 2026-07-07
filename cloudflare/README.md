@@ -44,6 +44,20 @@ Attach `scratchpad.z6o.cc` in the Pages project (Dashboard → Custom domains, o
 the API). The `z6o.cc` zone must be on the same account so the CNAME is created
 automatically.
 
+## Sync data from the box → serverless
+`sync.py` mirrors the git-synced Go box's data into D1 + R2 (real titles +
+freshest content, one-way, idempotent):
+```bash
+make sync-cf            # from the repo root
+# or: cd cloudflare && python3 sync.py
+```
+It pulls every item from the box API (`SYNC_BOX_URL`, default
+`https://scratchpad-suh.z6o.cc`), replaces the D1 index (items + links), and
+re-uploads each `content/<id>` to R2. Creds/password come from
+`../cloudflare_api_keys` (or env: `SCRATCHPAD_PASSWORD`, `CLOUDFLARE_API_TOKEN`,
+`CLOUDFLARE_ACCOUNT_ID`). It's one-way (box → edge); items deleted on the box
+disappear from D1 (their R2 blobs remain as harmless orphans).
+
 ## Local dev
 ```bash
 wrangler pages dev ../web/dist        # emulates D1 + R2 locally

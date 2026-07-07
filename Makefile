@@ -1,7 +1,7 @@
 .PHONY: all web build run dev tidy clean cross \
         deploy deploy-build release \
         remote-status remote-logs remote-restart remote-health \
-        deploy-cf
+        deploy-cf sync-cf
 
 BIN := scratchpad
 PKG := ./cmd/scratchpad
@@ -81,6 +81,12 @@ release:
 deploy-cf:
 	cd web && npm ci && npm run build
 	cd cloudflare && npx wrangler pages deploy ../web/dist --project-name scratchpad
+
+# One-way data sync: mirror the git-synced box data into the serverless store
+# (D1 + R2). Reads creds/password from cloudflare/../cloudflare_api_keys (or env).
+# Idempotent — re-run any time to refresh the Cloudflare copy from the box.
+sync-cf:
+	cd cloudflare && python3 sync.py
 
 # Remote control shortcuts (mirror the on-box Makefile).
 remote-status:  ; ssh $(DEPLOY_HOST) 'systemctl --no-pager status $(DEPLOY_SVC) | head -15'

@@ -3,10 +3,11 @@
 what_i_need
 cloudflare_api_keys
 
-# cloudflare deploy: local deps + wrangler state
+# cloudflare deploy: local deps + wrangler state + sync scratch
 /cloudflare/node_modules/
 /cloudflare/.wrangler/
 /cloudflare/.dev.vars
+/cloudflare/.sync/
 
 # rebuildable SQLite index
 scratchpad.db
