@@ -3,7 +3,7 @@ module github.com/phoenix911/scratchpad
 go 1.25.0
 
 require (
-	github.com/go-chi/chi/v5 v5.3.0
+	github.com/go-chi/chi/v5 v5.3.1
 	golang.org/x/image v0.43.0
 	modernc.org/sqlite v1.53.0
 )
