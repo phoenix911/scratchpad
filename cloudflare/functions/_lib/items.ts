@@ -7,7 +7,7 @@ import * as r2 from "./r2";
 import { newID, slug, cleanFolder } from "./ids";
 import { extractLinks } from "./links";
 
-export const TYPES = ["code", "draw", "mind", "doc", "kanban", "cornell", "sticky", "wf"] as const;
+export const TYPES = ["code", "draw", "mind", "doc", "kanban", "cornell", "sticky", "wf", "mermaid"] as const;
 export type ItemType = (typeof TYPES)[number];
 
 export function validType(t: string): t is ItemType {
@@ -23,6 +23,7 @@ const EXT: Record<string, string> = {
   cornell: "cornell",
   sticky: "sticky",
   wf: "wf",
+  mermaid: "mmd",
 };
 
 function relPath(it: Item): string {

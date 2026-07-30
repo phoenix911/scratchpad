@@ -13,6 +13,7 @@ const TYPE_LABEL: Record<string, string> = {
   cornell: "Cornell note",
   sticky: "sticky board",
   wf: "outline",
+  mermaid: "diagram",
 };
 
 function esc(s: string): string {
