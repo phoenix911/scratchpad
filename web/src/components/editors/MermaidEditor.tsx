@@ -191,8 +191,16 @@ export function MermaidEditor({ docId, initialContent, onChange, readOnly }: Pro
           placeholder="sequenceDiagram…  or  A -> B: hello"
         />
         {error && (
-          <div className="shrink-0 border-t border-[var(--line)] bg-[color-mix(in_srgb,var(--danger)_10%,transparent)] px-4 py-2 font-mono text-[12px] text-[var(--danger)]">
-            {error}
+          <div className="flex shrink-0 items-center gap-3 border-t border-[var(--line)] bg-[color-mix(in_srgb,var(--danger)_10%,transparent)] px-4 py-2 font-mono text-[12px] text-[var(--danger)]">
+            <span className="min-w-0 flex-1 truncate">{error}</span>
+            {/failed to fetch|dynamically imported|load/i.test(error) && (
+              <button
+                onClick={() => location.reload()}
+                className="shrink-0 rounded border border-[var(--danger)] px-2 py-0.5 text-[11px] transition hover:bg-[var(--danger)] hover:text-white"
+              >
+                Reload
+              </button>
+            )}
           </div>
         )}
       </div>
