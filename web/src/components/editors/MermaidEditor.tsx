@@ -24,7 +24,13 @@ end`;
 let mermaidMod: typeof import("mermaid").default | null = null;
 async function getMermaid(theme: "dark" | "light") {
   if (!mermaidMod) mermaidMod = (await import("mermaid")).default;
-  mermaidMod.initialize({ startOnLoad: false, theme: theme === "dark" ? "dark" : "default", securityLevel: "loose" });
+  mermaidMod.initialize({
+    startOnLoad: false,
+    theme: theme === "dark" ? "dark" : "default",
+    securityLevel: "loose",
+    maxTextSize: 5_000_000, // default 50k — allow big diagrams
+    maxEdges: 5000, // default 500 — allow big flowcharts
+  });
   return mermaidMod;
 }
 
