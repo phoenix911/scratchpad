@@ -1,0 +1,34 @@
+title: Company equity lifecycle (self-onboarding)
+order: company-admin, shareholder, stakeholder
+autonumber
+
+// --- self onboarding ---
+company-admin -> company-admin: Sign up, create company
+company-admin -> company-admin: Set up cap table
+company-admin -> shareholder: Invite shareholder
+company-admin -> stakeholder: Invite stakeholder (option grant)
+
+// --- acceptance ---
+shareholder --> company-admin: Accept holding
+stakeholder --> company-admin: Accept grant
+
+// --- grant approval ---
+company-admin -> company-admin: Create equity issuance / grant
+if: needs approval
+  company-admin -> company-admin: Approve grant
+  company-admin --> stakeholder: Grant active, vesting starts
+end
+
+// --- ongoing ---
+stakeholder -> stakeholder: Track vesting
+shareholder -> shareholder: View cap table & holdings
+
+// --- transfer (self-serve) ---
+shareholder -> company-admin: Initiate share transfer
+company-admin -> company-admin: Approve & settle transfer
+company-admin --> shareholder: Transfer complete
+
+// --- exercise (self-serve) ---
+stakeholder -> company-admin: Exercise options
+company-admin -> company-admin: Process exercise & issue shares
+company-admin --> stakeholder: Shares issued
