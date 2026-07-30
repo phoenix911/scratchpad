@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useStore } from "@/store";
 import { FileBadge } from "@/components/ui/FileBadge";
-import { PlusIcon, DrawIcon, MindIcon, DocIcon, KanbanIcon, CornellIcon, StickyIcon, OutlineIcon, SunIcon, MoonIcon, HomeIcon, ArchiveIcon, TrashIcon } from "@/components/ui/icons";
+import { PlusIcon, DrawIcon, MindIcon, DocIcon, KanbanIcon, CornellIcon, StickyIcon, OutlineIcon, DiagramIcon, SunIcon, MoonIcon, HomeIcon, ArchiveIcon, TrashIcon } from "@/components/ui/icons";
 
 interface Cmd {
   id: string;
@@ -110,6 +110,13 @@ export function CommandPalette() {
         hint: "wf",
         icon: <OutlineIcon size={15} />,
         run: async () => void (await createItem("wf", title)),
+      },
+      {
+        id: "new-mermaid",
+        label: q ? `New diagram “${q}”` : "New diagram",
+        hint: "mermaid",
+        icon: <DiagramIcon size={15} />,
+        run: async () => void (await createItem("mermaid", title)),
       },
     );
     const openable = items.filter((i) => !i.archived && !i.trashed);

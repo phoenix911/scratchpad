@@ -21,7 +21,7 @@ PUT    /api/items/:id                  { title?, folder?, language?, content? }
 POST   /api/items/:id/state            { state: "active" | "archived" | "trashed" }
 DELETE /api/items/:id                  (permanent delete — from the recycle bin)
 ```
-`type` is one of `code | draw | mind | doc | kanban | cornell | sticky | wf`.
+`type` is one of `code | draw | mind | doc | kanban | cornell | sticky | wf | mermaid`.
 `content` is the editor's serialized form (source text; Excalidraw / Mind Elixir /
 Kanban / sticky-board / outline JSON; or doc HTML).
 

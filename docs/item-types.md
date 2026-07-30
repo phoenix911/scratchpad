@@ -1,6 +1,6 @@
 # Item types
 
-Scratchpad has eight item types. They all share the same pipeline — a file on
+Scratchpad has nine item types. They all share the same pipeline — a file on
 disk, autosave, git sync, version history, and read-only sharing — and differ
 only in their editor and on-disk format.
 
@@ -14,6 +14,7 @@ only in their editor and on-disk format.
 | Cornell note | `.cn` | cue / notes / summary layout (Markdown auto-formats) | JSON | `.cornell` |
 | Sticky board | `.sb` | resizable grid of cells with colored sticky notes (dnd-kit) | board JSON | `.sticky` |
 | Outline | `.wf` | WorkFlowy-style collapsible bullet outliner | tree JSON | `.wf` |
+| Diagram | `.mmd` | text→diagram ([Mermaid](https://mermaid.js.org); swimlanes.io syntax auto-wrapped) | mermaid text | `.mmd` |
 
 Create any of them from the **⌘K** command palette.
 
@@ -42,6 +43,10 @@ folder structure is mirrored in the git repo.
 - **Sticky board** is a resizable grid of labeled cells (1×1 default, or 1×2 /
   1×3 / 2×2) holding colored sticky notes you can drag between cells, mark done
   (strikethrough), and delete.
+- **Diagram** renders [Mermaid](https://mermaid.js.org) live from text (sequence,
+  flowchart, gantt, …). You can also write [swimlanes.io](https://swimlanes.io)-style
+  sequence syntax (`A -> B: msg`, `note:`, `if:/else:/end`, `order:`, `autonumber`),
+  which is transpiled to a mermaid `sequenceDiagram`.
 - **Outline** is a WorkFlowy-style collapsible bullet tree: `Tab` / `Shift+Tab`
   indent/outdent, `Enter` adds a bullet (splitting at the caret), `Backspace` on
   an empty bullet removes it, the triangle collapses a branch, clicking a bullet

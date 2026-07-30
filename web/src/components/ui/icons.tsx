@@ -60,6 +60,14 @@ export const OutlineIcon = ({ size = 16, className }: P) => (
     <path d="M17 18h3" />
   </svg>
 );
+export const DiagramIcon = ({ size = 16, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <rect x="3" y="4" width="6" height="4" rx="1" />
+    <rect x="15" y="8" width="6" height="4" rx="1" />
+    <rect x="9" y="16" width="6" height="4" rx="1" />
+    <path d="M6 8v3a2 2 0 0 0 2 2h4M18 12v1a2 2 0 0 1-2 2h-4" />
+  </svg>
+);
 export const PlusIcon = ({ size = 16, className }: P) => (
   <svg {...base(size)} className={className}>
     <path d="M12 5v14M5 12h14" />

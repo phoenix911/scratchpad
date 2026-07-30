@@ -9,6 +9,7 @@ const KanbanBoard = lazy(() => import("@/components/editors/KanbanBoard").then((
 const CornellNote = lazy(() => import("@/components/editors/CornellNote").then((m) => ({ default: m.CornellNote })));
 const StickyBoard = lazy(() => import("@/components/editors/StickyBoard").then((m) => ({ default: m.StickyBoard })));
 const Outliner = lazy(() => import("@/components/editors/Outliner").then((m) => ({ default: m.Outliner })));
+const MermaidEditor = lazy(() => import("@/components/editors/MermaidEditor").then((m) => ({ default: m.MermaidEditor })));
 
 // Read-only render of any item type. Shared by the public share page and the
 // version-history preview so they stay in sync.
@@ -63,6 +64,12 @@ export function ItemViewer({
     return (
       <Suspense fallback={fallback}>
         <Outliner docId={docId} initialContent={content} readOnly />
+      </Suspense>
+    );
+  if (type === "mermaid")
+    return (
+      <Suspense fallback={fallback}>
+        <MermaidEditor docId={docId} initialContent={content} readOnly />
       </Suspense>
     );
   return (

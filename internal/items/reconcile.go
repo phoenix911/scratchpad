@@ -94,6 +94,8 @@ func (s *Service) reconcileRoot(rootName string, archived, trashed bool, seen ma
 			it.Type = TypeSticky
 		case wfExt:
 			it.Type = TypeWF
+		case mermaidExt:
+			it.Type = TypeMermaid
 		default:
 			it.Type = TypeCode
 			it.Language = languageForExt(ext)

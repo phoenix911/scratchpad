@@ -14,6 +14,7 @@ const KanbanBoard = lazy(() => import("@/components/editors/KanbanBoard").then((
 const CornellNote = lazy(() => import("@/components/editors/CornellNote").then((m) => ({ default: m.CornellNote })));
 const StickyBoard = lazy(() => import("@/components/editors/StickyBoard").then((m) => ({ default: m.StickyBoard })));
 const Outliner = lazy(() => import("@/components/editors/Outliner").then((m) => ({ default: m.Outliner })));
+const MermaidEditor = lazy(() => import("@/components/editors/MermaidEditor").then((m) => ({ default: m.MermaidEditor })));
 
 // The main pane is just the editor/canvas, full-bleed — all controls live in the
 // sidebar. A tiny unobtrusive save indicator floats in the corner.
@@ -101,6 +102,11 @@ export function Workspace() {
       {item && !loading && item.type === "wf" && (
         <Suspense fallback={<Centered>loading…</Centered>}>
           <Outliner docId={item.id} initialContent={item.content} onChange={schedule} />
+        </Suspense>
+      )}
+      {item && !loading && item.type === "mermaid" && (
+        <Suspense fallback={<Centered>loading diagram…</Centered>}>
+          <MermaidEditor docId={item.id} initialContent={item.content} onChange={schedule} />
         </Suspense>
       )}
       <SaveBadge status={status} />

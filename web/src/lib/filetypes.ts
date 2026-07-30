@@ -36,6 +36,7 @@ export const KANBAN_TYPE: FileType = { ext: "kb", color: "#e64980", label: "Boar
 export const CORNELL_TYPE: FileType = { ext: "cn", color: "#f08c00", label: "Cornell note" };
 export const STICKY_TYPE: FileType = { ext: "sb", color: "#ae3ec9", label: "Sticky board" };
 export const WF_TYPE: FileType = { ext: "wf", color: "#1098ad", label: "Outline" };
+export const MERMAID_TYPE: FileType = { ext: "mmd", color: "#0b7285", label: "Diagram" };
 
 // Languages offered in the dropdown, in display order.
 export const LANGUAGES = [
@@ -58,7 +59,7 @@ export const LANGUAGES = [
   "shell",
 ] as const;
 
-export type ItemKind = "code" | "draw" | "mind" | "doc" | "kanban" | "cornell" | "sticky" | "wf";
+export type ItemKind = "code" | "draw" | "mind" | "doc" | "kanban" | "cornell" | "sticky" | "wf" | "mermaid";
 
 export function fileTypeFor(itemType: ItemKind, language: string): FileType {
   switch (itemType) {
@@ -76,6 +77,8 @@ export function fileTypeFor(itemType: ItemKind, language: string): FileType {
       return STICKY_TYPE;
     case "wf":
       return WF_TYPE;
+    case "mermaid":
+      return MERMAID_TYPE;
     default:
       return FILE_TYPES[language] ?? { ext: language || "txt", color: "#8a8f98", label: language || "Text" };
   }
